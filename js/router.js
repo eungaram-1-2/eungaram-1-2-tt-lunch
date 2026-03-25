@@ -156,20 +156,34 @@ function updateNav() {
     if (user) {
         const bc = user.role === 'admin' ? 'badge-admin' : 'badge-user';
         const bt = user.role === 'admin' ? '관리자' : '학생';
-        const banBadge  = isBanned() ? `<span class="badge-banned" style="font-size:0.68rem">정지됨</span>` : '';
-        const adminBtn  = user.role === 'admin'
+        const banBadge = isBanned() ? `<span class="badge-banned" style="font-size:0.68rem">정지됨</span>` : '';
+        const adminBtn = user.role === 'admin'
             ? `<button class="btn btn-outline btn-sm" onclick="navigate('admin')" style="border-color:var(--primary);color:var(--primary);font-size:0.78rem">⚙️ 관리자</button>`
             : '';
+        // 데스크탑: 배지 + 닉네임 + 관리자버튼 + 로그아웃 모두 표시
         authDiv.innerHTML = `
             <div class="user-info">
                 <span class="user-badge ${bc}">${bt}</span>
                 ${banBadge}
-                <span>${escapeHtml(user.nickname)}</span>
-                ${adminBtn}
-                <button class="btn btn-ghost btn-sm" onclick="logout()">로그아웃</button>
+                <span class="nav-user-nick">${escapeHtml(user.nickname)}</span>
+                <span class="nav-auth-desktop">${adminBtn}
+                    <button class="btn btn-ghost btn-sm" onclick="logout()">로그아웃</button>
+                </span>
             </div>`;
+        // 모바일 햄버거 메뉴: 구분선 + 관리자 + 로그아웃
+        const mobileSection = document.getElementById('navMenuUserSection');
+        if (mobileSection) {
+            mobileSection.style.display = '';
+            mobileSection.innerHTML = `
+                <div class="nav-menu-divider"></div>
+                <span class="nav-menu-user-label">${escapeHtml(user.nickname)} (${bt})</span>
+                ${user.role === 'admin' ? `<a href="#" onclick="navigate('admin')">⚙️ 관리자 대시보드</a>` : ''}
+                <a href="#" onclick="logout()">🚪 로그아웃</a>`;
+        }
     } else {
         authDiv.innerHTML = `<button class="btn btn-primary btn-sm" onclick="navigate('login')">로그인</button>`;
+        const mobileSection = document.getElementById('navMenuUserSection');
+        if (mobileSection) mobileSection.style.display = 'none';
     }
 
     const loggedIn = isLoggedIn();

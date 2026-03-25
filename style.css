@@ -206,6 +206,24 @@ button { font-family: inherit; }
 .user-info { display: flex; align-items: center; gap: 10px; }
 .user-info span { font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); }
 
+/* 모바일에서 관리자/로그아웃 버튼 숨김 (햄버거 메뉴로 이동) */
+.nav-auth-desktop { display: flex; align-items: center; gap: 8px; }
+
+/* 햄버거 메뉴 내 유저 섹션 */
+.nav-menu-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 6px 0;
+}
+.nav-menu-user-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 4px 0 8px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
 .user-badge {
     font-size: 0.62rem;
     padding: 3px 10px;
@@ -1938,6 +1956,10 @@ button { font-family: inherit; }
     .logo-subtitle { display: none; }
     .logo-title { font-size: 0.95rem; }
     .logo-img { width: 32px; height: 32px; border-radius: 10px; }
+
+    /* 모바일: 관리자/로그아웃 숨기고 햄버거 메뉴로 */
+    .nav-auth-desktop { display: none; }
+    .nav-user-nick { display: none; }
 
     .hero { padding: 100px 16px 65px; }
     .hero h1 { font-size: 1.85rem; }
