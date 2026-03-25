@@ -91,6 +91,7 @@ const QUICK_LINKS = [
     { icon:'📚', title:'전자도서관',               desc:'온라인 전자도서관 이용',   url:'https://eungaram.yes24library.com/', color:'#3b82f6' },
     { icon:'🔍', title:'도서 검색',               desc:'학교 도서 검색 서비스',    url:'https://read365.edunet.net/PureScreen/SchoolSearch?schoolName=%EC%9D%80%EA%B0%80%EB%9E%8C%EC%A4%91%ED%95%99%EA%B5%90&provCode=J10&neisCode=J100007036', color:'#22c55e' },
     { icon:'🍽️', title:'급식 안내',               desc:'이번 주 급식 메뉴 확인',   url:'https://eungaram-m.goegh.kr/eungaram-m/ad/fm/foodmenu/selectFoodMenuView.do?mi=8056', color:'#f59e0b' },
+    { icon:'💭', title:'실시간 채팅',            desc:'친구들과 즉시 소통',       page:'chat', color:'#06b6d4' },
     { icon:'📋', title:'학교 정보',               desc:'학교 알리미 정보 공개',    url:'https://www.schoolinfo.go.kr/ei/ss/Pneiss_b01_s0.do?SHL_IDF_CD=5279faf7-723c-4be3-985f-fb64171392e7', color:'#ec4899' },
     { icon:'📮', title:'건의함',                  desc:'의견 및 건의사항 제출',    url:'https://docs.google.com/forms/u/0/d/e/1FAIpQLSc1s4oIvfvoT_GbvdFU95ZglDqYvsfngXrwZOaiaeDDC2NsiA/formResponse', color:'#14b8a6' },
     { icon:'💬', title:'1-2반 건의함',         desc:'웹사이트 피드백 및 건의',   url:'https://docs.google.com/forms/d/e/1FAIpQLScUFM4zrlhQRJrgg0bXX33IiNY2nynXp4STqQsypHCHFb7byQ/viewform', color:'#ef4444' }

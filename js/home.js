@@ -194,6 +194,13 @@ function renderHome() {
                     <p>공정한<br>학급 의사결정.</p>
                 </div>
             </div>
+            <div class="feature-card" onclick="isLoggedIn() ? navigate('chat') : navigate('login')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">💭</div>
+                    <h3>실시간 채팅</h3>
+                    <p>친구들과<br>즉시 소통.</p>
+                </div>
+            </div>
             <div class="feature-card" onclick="window.open('https://docs.google.com/forms/u/0/d/e/1FAIpQLSc1s4oIvfvoT_GbvdFU95ZglDqYvsfngXrwZOaiaeDDC2NsiA/formResponse','_blank')">
                 <div class="feature-card-inner">
                     <div class="feature-icon">📮</div>
