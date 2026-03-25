@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>은가람 중학교 1학년 2반</title>
+    <!-- 보안: CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; script-src 'self' 'unsafe-inline' https://www.gstatic.com; connect-src 'self' https://api.allorigins.win https://api.ipify.org https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com; form-action 'self' https://docs.google.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer">
+    <!-- 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+    <!-- 다크모드 깜빡임 방지 -->
+    <script>
+        (function(){
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme','dark');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <!-- 네비게이션 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="navigate('home')">
+                <img src="assets/logo.svg" alt="은가람 중학교 로고" class="logo-img">
+                <div class="logo-text">
+                    <span class="logo-title">은가람 중학교</span>
+                    <span class="logo-subtitle">1학년 2반</span>
+                    <span class="logo-clock" id="navClock"></span>
+                </div>
+            </a>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#" onclick="navigate('notices')">📢 공지사항</a></li>
+                <li><a href="#" onclick="navigate('timetable')">📅 시간표</a></li>
+                <li><a href="#" onclick="navigate('lunch')">🍱 급식</a></li>
+                <li><a href="#" onclick="navigate('board')">💬 자유게시판</a></li>
+                <li><a href="#" onclick="navigate('votes')">🗳️ 투표</a></li>
+                <li><a href="#" onclick="navigate('dday')">⏰ D-Day</a></li>
+                <li><a href="#" onclick="navigate('links')">🔗 바로가기</a></li>
+            </ul>
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크/라이트 모드 전환" aria-label="테마 전환">
+                    <span class="theme-icon" id="themeIcon">🌙</span>
+                </button>
+                <div class="nav-auth" id="navAuth">
+                    <button class="btn btn-primary btn-sm" onclick="navigate('login')">로그인</button>
+                </div>
+                <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="메뉴 열기">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 메인 컨텐츠 -->
+    <main id="app"></main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Eungaram Middle School 1st Grade Class 2. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <!-- 모달 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK (Realtime Database) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <!-- 기반 -->
+    <script src="js/firebase-config.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/modal.js"></script>
+    <!-- 페이지 렌더러 -->
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/home.js"></script>
+    <script src="js/notices.js"></script>
+    <script src="js/post.js"></script>
+    <script src="js/comments.js"></script>
+    <script src="js/timetable.js"></script>
+    <script src="js/votes.js"></script>
+    <script src="js/dday.js"></script>
+    <script src="js/links.js"></script>
+    <script src="js/lunch.js"></script>
+    <script src="js/logs.js"></script>
+    <script src="js/boardlog.js"></script>
+    <!-- 라우터 & 초기화 (마지막에 로드) -->
+    <script src="js/router.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

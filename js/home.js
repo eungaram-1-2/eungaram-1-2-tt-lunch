@@ -1,0 +1,351 @@
+// =============================================
+// 홈 페이지
+// =============================================
+function renderHome() {
+    const now = new Date(); now.setHours(0, 0, 0, 0);
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    const todayDow = dayNames[new Date().getDay()];
+
+    // ── D-Day 데이터 ──
+    const upcomingDdays = DB.get('ddays')
+        .filter(d => new Date(d.date + 'T00:00:00') >= now)
+        .sort((a, b) => new Date(a.date) - new Date(b.date))
+        .slice(0, 5);
+
+    let ddayStripItems = '';
+    if (upcomingDdays.length > 0) {
+        ddayStripItems = upcomingDdays.map(d => {
+            const diff = calcDday(d.date);
+            const label = formatDdayLabel(diff);
+            let cls = 'dday-chip-normal';
+            if (diff === 0) cls = 'dday-chip-today';
+            else if (diff <= 3) cls = 'dday-chip-urgent';
+            else if (diff <= 7) cls = 'dday-chip-soon';
+            return `<div class="dday-chip ${cls}" onclick="navigate('dday')">
+                <span>${d.emoji || '📌'}</span>
+                <strong>${escapeHtml(d.title)}</strong>
+                <span class="dday-chip-label">${label}</span>
+            </div>`;
+        }).join('');
+    }
+    const ddayStrip = ddayStripItems
+        ? `<div class="dday-strip"><div class="dday-banner">${ddayStripItems}</div></div>`
+        : '';
+
+    // ── 공지사항 ──
+    const allNotices = DB.get('notices');
+    const noticesCount = allNotices.length;
+    const recentNotices = allNotices.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
+
+    let timelineItems = '';
+    if (recentNotices.length > 0) {
+        timelineItems = recentNotices.map(n => {
+            const comments = DB.get('comments_notices_' + n.id);
+            const badgeStyle = n.pinned
+                ? 'background:rgba(245,158,11,0.12);color:#d97706'
+                : 'background:var(--primary-bg);color:var(--primary)';
+            const badgeText = n.pinned ? '📌 고정' : '📢 공지';
+            const commentStr = comments.length > 0 ? ' · 💬 ' + comments.length : '';
+            return `<div class="notice-tl-item" onclick="navigate('notice-detail',{id:'${n.id}'})">
+                <div class="notice-tl-dot" ${n.pinned ? 'style="background:#f59e0b"' : ''}></div>
+                <div class="notice-tl-content">
+                    <div class="notice-tl-title">
+                        <span class="notice-tl-badge" style="${badgeStyle}">${badgeText}</span>${escapeHtml(n.title)}
+                    </div>
+                    <div class="notice-tl-meta">${escapeHtml(n.author)} · ${formatDate(n.createdAt)}${commentStr}</div>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        timelineItems = `<div style="padding:32px 0;text-align:center;color:var(--text-muted)">
+            <div style="font-size:2.5rem;margin-bottom:10px">📢</div>
+            <p style="font-weight:500">아직 등록된 공지사항이 없습니다.</p>
+        </div>`;
+    }
+
+    // ── 사이드바 D-Day 목록 ──
+    let sideDdayItems = '';
+    if (upcomingDdays.length > 0) {
+        sideDdayItems = upcomingDdays.slice(0, 4).map(d => {
+            const diff = calcDday(d.date);
+            const label = formatDdayLabel(diff);
+            let badgeBg = 'rgba(79,70,229,0.1)'; let badgeColor = 'var(--primary)';
+            if (diff === 0) { badgeBg = 'rgba(239,68,68,0.12)'; badgeColor = '#ef4444'; }
+            else if (diff <= 3) { badgeBg = 'rgba(245,158,11,0.12)'; badgeColor = '#d97706'; }
+            else if (diff <= 7) { badgeBg = 'rgba(6,182,212,0.12)'; badgeColor = '#0891b2'; }
+            return `<div class="side-dday-item">
+                <span class="side-dday-label">${d.emoji || '📌'} ${escapeHtml(d.title)}</span>
+                <span class="side-dday-badge" style="background:${badgeBg};color:${badgeColor}">${label}</span>
+            </div>`;
+        }).join('');
+    } else {
+        sideDdayItems = `<p style="font-size:0.82rem;color:var(--text-muted);padding:8px 0">등록된 D-Day가 없습니다.</p>`;
+    }
+
+    // ── 급식 위젯 ──
+    const lunchHtml = renderLunchWidget();
+    setTimeout(() => loadLunchWidget(), 0);
+
+    setTimeout(() => _initHeroCanvas(), 0);
+
+    return `
+    <div class="hero">
+        <canvas class="hero-canvas" id="heroCanvas"></canvas>
+        <div class="hero-blob hero-blob-1"></div>
+        <div class="hero-blob hero-blob-2"></div>
+        <div class="hero-blob hero-blob-3"></div>
+        <div class="hero-blob hero-blob-4"></div>
+        <div class="hero-grid"></div>
+        <div class="hero-content">
+            <div class="hero-badge">🏫 은가람 중학교 1학년 2반</div>
+            <h1>우리 반의 모든 것이<br><span class="highlight">한 곳에</span></h1>
+            <p>공지사항부터 시간표, 자유로운 소통까지<br>학급의 모든 정보와 활동을 스마트하게 관리하세요.</p>
+            <button class="hero-btn" onclick="navigate(isLoggedIn() ? 'notices' : 'login')">
+                지금 시작하기 →
+            </button>
+            <div class="hero-stats">
+                <div class="hero-stat-pill"><span>📢</span><span>${noticesCount}개 공지</span></div>
+                <div class="hero-stat-pill"><span>🏫</span><span>1학년 2반</span></div>
+                <div class="hero-stat-pill"><span>📅</span><span>${todayDow}요일</span></div>
+            </div>
+        </div>
+    </div>
+
+    ${ddayStrip}
+
+    <div class="home-quick-bar">
+        <div class="quick-pill" onclick="navigate('notices')">
+            <span class="quick-pill-icon">📢</span><span>공지사항</span>
+        </div>
+        <div class="quick-pill" onclick="navigate('timetable')">
+            <span class="quick-pill-icon">📅</span><span>시간표</span>
+        </div>
+        <div class="quick-pill" onclick="navigate('lunch')">
+            <span class="quick-pill-icon">🍱</span><span>급식</span>
+        </div>
+        <div class="quick-pill" onclick="navigate('board')">
+            <span class="quick-pill-icon">💬</span><span>게시판</span>
+        </div>
+        <div class="quick-pill" onclick="navigate('dday')">
+            <span class="quick-pill-icon">⏰</span><span>D-Day</span>
+        </div>
+    </div>
+
+    <div class="home-two-col">
+        <div class="home-main-col">
+            <div class="card card-body" style="padding:0;overflow:hidden">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
+                    <h3 style="font-weight:800;font-size:1rem;color:var(--text)">📢 최근 공지사항</h3>
+                    <button class="btn btn-ghost btn-sm" onclick="navigate('notices')" style="font-size:0.8rem;color:var(--primary)">전체보기 →</button>
+                </div>
+                <div class="notice-timeline" style="padding:0 24px">
+                    ${timelineItems}
+                </div>
+            </div>
+        </div>
+        <div class="home-side-col">
+            ${lunchHtml}
+            <div class="side-widget">
+                <div class="side-widget-title"><span>⏰</span> 다가오는 일정</div>
+                ${sideDdayItems}
+                <button class="btn btn-ghost btn-sm" onclick="navigate('dday')" style="margin-top:10px;font-size:0.8rem;color:var(--primary);width:100%">전체 일정 보기 →</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="features" style="padding-top:48px">
+        <div class="section-header">
+            <h2>주요 기능</h2>
+            <p>학급 운영에 필요한 모든 기능을 제공합니다</p>
+        </div>
+        <div class="feature-mosaic" style="max-width:1160px;margin:0 auto;padding:0 20px">
+            <div class="feature-card" onclick="navigate('notices')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">📢</div>
+                    <h3>실시간 공지사항</h3>
+                    <p>중요 소식과 알림을 즉시 확인하고 댓글로 소통하세요.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="navigate('timetable')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">📅</div>
+                    <h3>스마트 시간표</h3>
+                    <p>오늘 수업을<br>한눈에.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="navigate('board')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">💬</div>
+                    <h3>자유게시판</h3>
+                    <p>친구들과<br>자유롭게 소통.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="navigate('votes')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">🗳️</div>
+                    <h3>투표 &amp; 설문</h3>
+                    <p>공정한<br>학급 의사결정.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="window.open('https://docs.google.com/forms/u/0/d/e/1FAIpQLSc1s4oIvfvoT_GbvdFU95ZglDqYvsfngXrwZOaiaeDDC2NsiA/formResponse','_blank')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">📮</div>
+                    <h3>건의함</h3>
+                    <p>의견을<br>자유롭게 제출.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="school-info-section">
+        <div class="section-header">
+            <h2>🏫 은가람 중학교 소개</h2>
+            <p>우리 학교를 소개합니다</p>
+        </div>
+
+        <div class="school-motto-card">
+            <div class="school-motto-badge">교훈</div>
+            <div class="school-motto-text">지혜 · 사랑 · 열정</div>
+        </div>
+
+        <div class="school-info-list">
+            <div class="school-info-item">
+                <div class="school-info-img-wrap" style="border-color:#7c3aed">
+                    <img src="assets/logo.svg" alt="교표" class="school-info-img">
+                </div>
+                <div class="school-info-body">
+                    <div class="school-info-badge" style="background:#7c3aed">교표</div>
+                    <ul class="school-info-bullets" style="--dot:#7c3aed">
+                        <li>지구를 표현하는 원안에 책으로 쌓아올린 나무는 은가람중학교의 교목인 소나무를 상징함</li>
+                        <li>테두리의 보라색의 원은 은가람중학교의 교화인 라일락을 상징하는 색으로 교목과 교화가 어우러져 화합과 협동을 추구함</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="school-info-item">
+                <div class="school-info-img-wrap" style="border-color:#16a34a">
+                    <div class="school-info-emoji">🌲</div>
+                </div>
+                <div class="school-info-body">
+                    <div class="school-info-badge" style="background:#16a34a">교목</div>
+                    <ul class="school-info-bullets" style="--dot:#16a34a">
+                        <li>소나무를 우리말로는 '솔'이라고 하는데 높고 으뜸이라는 의미를 가짐.</li>
+                        <li>사계절 늘 푸른 침엽수로 정직 인내 번영을 상징하며 소나무의 기상과 같이 높은 꿈과 이상을 지니길 바라는 의미</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="school-info-item">
+                <div class="school-info-img-wrap" style="border-color:#e11d48">
+                    <div class="school-info-emoji">🌸</div>
+                </div>
+                <div class="school-info-body">
+                    <div class="school-info-badge" style="background:#e11d48">교화</div>
+                    <ul class="school-info-bullets" style="--dot:#e11d48">
+                        <li>라일락의 많은 꽃이 모여 아름다움을 나타냄은 협동단결의 표상이며 겸손을 지닌 향기로운 청소년으로서 사랑받은 인간상을 추구함.</li>
+                        <li>라일락의 꽃말은 '젊은날의추억'임. 달콤하고 은은하며 품위있는 향기를 지녔으며 꿈과 희망을 안겨주는 꽃임</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>`;
+}
+
+// =============================================
+// 히어로 캔버스 파티클
+// =============================================
+let _heroAnimId = null;
+
+function _initHeroCanvas() {
+    if (_heroAnimId) { cancelAnimationFrame(_heroAnimId); _heroAnimId = null; }
+
+    const canvas = document.getElementById('heroCanvas');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const hero = canvas.parentElement;
+
+    function resize() {
+        canvas.width  = hero.offsetWidth;
+        canvas.height = hero.offsetHeight;
+    }
+    resize();
+
+    const COUNT = 90;
+    const particles = Array.from({ length: COUNT }, () => ({
+        x:     Math.random() * canvas.width,
+        y:     Math.random() * canvas.height,
+        r:     Math.random() * 1.6 + 0.3,
+        speed: Math.random() * 0.35 + 0.08,
+        drift: (Math.random() - 0.5) * 0.3,
+        alpha: Math.random() * 0.6 + 0.2,
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: Math.random() * 0.025 + 0.008,
+    }));
+
+    // 반짝이는 별 레이어 (크고 밝음)
+    const stars = Array.from({ length: 18 }, () => ({
+        x:     Math.random() * canvas.width,
+        y:     Math.random() * canvas.height,
+        r:     Math.random() * 1.2 + 0.8,
+        alpha: Math.random(),
+        pulse: Math.random() * Math.PI * 2,
+        pulseSpeed: Math.random() * 0.04 + 0.015,
+    }));
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        // 라이트: 황금빛/흰색  /  다크: 청백/보라
+        const dustColor  = isDark ? '200, 220, 255' : '255, 240, 210';
+        const starColor1 = isDark ? '255, 255, 255'  : '255, 255, 255';
+        const starColor2 = isDark ? '160, 200, 255'  : '255, 200, 120';
+
+        // 파티클 (떠오르는 먼지)
+        for (const p of particles) {
+            p.pulse += p.pulseSpeed;
+            const a = p.alpha * (0.5 + 0.5 * Math.sin(p.pulse));
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${dustColor}, ${a})`;
+            ctx.fill();
+
+            p.y -= p.speed;
+            p.x += p.drift;
+            if (p.y < -5) { p.y = canvas.height + 5; p.x = Math.random() * canvas.width; }
+            if (p.x < -5 || p.x > canvas.width + 5) p.x = Math.random() * canvas.width;
+        }
+
+        // 별 (반짝임)
+        for (const s of stars) {
+            s.pulse += s.pulseSpeed;
+            const a = 0.3 + 0.7 * ((Math.sin(s.pulse) + 1) / 2);
+            const size = s.r * (0.7 + 0.5 * ((Math.sin(s.pulse * 0.7) + 1) / 2));
+
+            const grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, size * 3);
+            grad.addColorStop(0, `rgba(${starColor1}, ${a})`);
+            grad.addColorStop(1, `rgba(${starColor2}, 0)`);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, size * 3, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+
+        _heroAnimId = requestAnimationFrame(draw);
+    }
+
+    draw();
+
+    // 히어로 영역 벗어나면 중단
+    const obs = new IntersectionObserver(entries => {
+        if (!entries[0].isIntersecting) {
+            cancelAnimationFrame(_heroAnimId);
+            _heroAnimId = null;
+            obs.disconnect();
+        }
+    });
+    obs.observe(hero);
+
+    window.addEventListener('resize', resize, { passive: true });
+}
