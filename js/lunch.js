@@ -2,7 +2,10 @@
 // 급식 메뉴 (CORS 프록시 경유 스크래핑)
 // =============================================
 const LUNCH_SCHOOL_URL = 'https://eungaram-m.goegh.kr/eungaram-m/ad/fm/foodmenu/selectFoodMenuView.do?mi=8056';
-const LUNCH_PROXY      = 'https://api.allorigins.win/get?url=';
+const LUNCH_PROXIES    = [
+    'https://cors-anywhere.herokuapp.com/',
+    'https://api.allorigins.win/get?url='
+];
 
 function _lunchTodayStr() {
     const d = new Date();
@@ -79,10 +82,33 @@ let _rawHtmlPromise = null;
 
 function _fetchRawHtml() {
     if (_rawHtmlPromise) return _rawHtmlPromise;
-    _rawHtmlPromise = fetch(LUNCH_PROXY + encodeURIComponent(LUNCH_SCHOOL_URL))
-        .then(res => { if (!res.ok) throw new Error('proxy error'); return res.json(); })
-        .then(json => json.contents || '')
-        .catch(e => { console.warn('HTML 로드 실패:', e); _rawHtmlPromise = null; return ''; });
+
+    _rawHtmlPromise = (async () => {
+        for (let i = 0; i < LUNCH_PROXIES.length; i++) {
+            try {
+                const proxy = LUNCH_PROXIES[i];
+                let fetchUrl, parseResponse;
+
+                if (proxy.includes('allorigins')) {
+                    fetchUrl = proxy + encodeURIComponent(LUNCH_SCHOOL_URL);
+                    parseResponse = (res) => res.json().then(json => json.contents || '');
+                } else {
+                    fetchUrl = proxy + LUNCH_SCHOOL_URL;
+                    parseResponse = (res) => res.text();
+                }
+
+                const res = await fetch(fetchUrl);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const html = await parseResponse(res);
+                if (html && html.length > 100) return html;
+            } catch (e) {
+                console.warn(`프록시 ${i+1}/${LUNCH_PROXIES.length} 실패:`, e.message);
+            }
+        }
+        console.warn('모든 프록시 실패, 오프라인 모드');
+        return '';
+    })();
+
     return _rawHtmlPromise;
 }
 
