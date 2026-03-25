@@ -1861,32 +1861,28 @@ button { font-family: inherit; }
     .nav-container { padding: 0 14px; }
 
     .nav-menu {
-        display: flex;
-        position: static;
-        flex-direction: row;
-        padding: 8px 14px;
-        gap: 4px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        border-top: 1px solid var(--border);
+        display: none;
+        position: fixed;
+        top: 56px;
+        left: 0; right: 0; bottom: 0;
         background: var(--bg-card);
-        height: auto;
-        z-index: auto;
+        flex-direction: column;
+        padding: 16px;
+        z-index: 999;
+        gap: 4px;
+        overflow-y: auto;
+        border-top: 1px solid var(--border);
     }
 
     .nav-menu.active { display: flex; }
 
-    .nav-menu li {
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
+    .nav-menu li { width: 100%; }
 
     .nav-menu a {
-        display: inline-flex;
-        align-items: center;
-        padding: 10px 14px;
+        display: block;
+        padding: 14px 18px;
         border-radius: var(--radius-sm);
-        font-size: 0.85rem;
+        font-size: 1rem;
         text-align: center;
     }
 
@@ -1895,7 +1891,7 @@ button { font-family: inherit; }
         color: white;
     }
 
-    .hamburger { display: none; }
+    .hamburger { display: flex; }
 
     .logo-subtitle { display: none; }
     .logo-title { font-size: 0.95rem; }
@@ -1993,7 +1989,7 @@ button { font-family: inherit; }
 
 /* ===== Backdrop for mobile menu ===== */
 .menu-backdrop {
-    display: none !important;
+    display: none;
     position: fixed;
     top: 56px; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.4);
@@ -2001,7 +1997,7 @@ button { font-family: inherit; }
     z-index: 998;
 }
 
-.menu-backdrop.active { display: none !important; }
+.menu-backdrop.active { display: block; }
 
 /* ===== Touch optimizations ===== */
 @media (hover: none) and (pointer: coarse) {

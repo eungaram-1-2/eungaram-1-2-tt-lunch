@@ -129,6 +129,12 @@ function renderHome() {
         <div class="quick-pill" onclick="navigate('dday')">
             <span class="quick-pill-icon">⏰</span><span>D-Day</span>
         </div>
+        <div class="quick-pill" onclick="navigate('votes')">
+            <span class="quick-pill-icon">🗳️</span><span>투표</span>
+        </div>
+        <div class="quick-pill" onclick="navigate('links')">
+            <span class="quick-pill-icon">🔗</span><span>바로가기</span>
+        </div>
     </div>
 
     <div class="home-two-col">
