@@ -10,13 +10,13 @@
 // 설정 전까지는 localStorage 방식으로 동작합니다 (단일 기기).
 // =============================================
 const FIREBASE_CONFIG = {
-    apiKey:            "",
-    authDomain:        "",
-    databaseURL:       "",   // ← 필수: "https://프로젝트명-default-rtdb.firebaseio.com"
-    projectId:         "",
-    storageBucket:     "",
-    messagingSenderId: "",
-    appId:             ""
+    apiKey:            "AIzaSyDqHLy776360cA5mUZ096wZ7L9BGjh7xM",
+    authDomain:        "eungaram-1-2.firebaseapp.com",
+    databaseURL:       "https://eungaram-1-2-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:         "eungaram-1-2",
+    storageBucket:     "eungaram-1-2.firebasestorage.app",
+    messagingSenderId: "4854445179",
+    appId:             "1:4854445179:web:dd2f9d87b3536d98e7c50e"
 };
 
 // Firebase 초기화 (databaseURL이 입력된 경우에만)
