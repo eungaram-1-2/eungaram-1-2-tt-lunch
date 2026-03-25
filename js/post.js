@@ -31,12 +31,19 @@ function renderPostDetail(type) {
     let actions = `<button class="btn btn-ghost btn-sm" onclick="navigate('${listPage}')">← 목록으로</button>`;
     if (isAdmin()) {
         const pinText = post.pinned ? '📌 고정 해제' : '📌 상단 고정';
+        const editBtn = canEdit(post.createdAt)
+            ? `<button class="btn btn-outline btn-sm" onclick="showEditPostModal('${type}','${post.id}')">수정</button>`
+            : '';
         actions += `
+            ${editBtn}
             <button class="btn btn-outline btn-sm" onclick="togglePin('${type}','${post.id}')">${pinText}</button>
             <button class="btn btn-danger btn-sm" onclick="deletePost('${type}','${post.id}')">삭제</button>`;
     } else if (user && post.authorId === user.id && type === 'board') {
+        const editBtn = canEdit(post.createdAt)
+            ? `<button class="btn btn-outline btn-sm" onclick="showEditPostModal('${type}','${post.id}')">수정</button>`
+            : '';
         actions += `
-            <button class="btn btn-outline btn-sm" onclick="showEditPostModal('${type}','${post.id}')">수정</button>
+            ${editBtn}
             <button class="btn btn-danger btn-sm" onclick="deletePost('${type}','${post.id}')">삭제</button>`;
     }
 
@@ -270,6 +277,10 @@ function showEditPostModal(type, postId) {
     const posts = DB.get(type);
     const post = posts.find(p => p.id === postId);
     if (!post) return;
+    if (!canEdit(post.createdAt)) {
+        showToast('작성 후 24시간이 지난 게시글은 수정할 수 없습니다.', 'warning');
+        return;
+    }
 
     openModal('게시글 수정', `
         <div class="form-group">
@@ -317,7 +328,8 @@ function submitEditPost(type, postId) {
         addBoardLog('post_edit', { postId: postId, title: titleV.value, oldTitle: oldTitle });
     }
     showToast('게시글이 수정되었습니다.', 'success');
-    navigate('board-detail', { id: postId });
+    const detailPage = type === 'notices' ? 'notice-detail' : 'board-detail';
+    navigate(detailPage, { id: postId });
 }
 
 function togglePin(type, id) {

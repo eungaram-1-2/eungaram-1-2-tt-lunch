@@ -45,9 +45,13 @@ function renderDday() {
 
             const dateObj    = new Date(d.date + 'T00:00:00');
             const dateDisplay = `${dateObj.getFullYear()}.${String(dateObj.getMonth()+1).padStart(2,'0')}.${String(dateObj.getDate()).padStart(2,'0')} (${dayNames[dateObj.getDay()]})`;
-            const adminBtns  = isAdmin()
-                ? `<button class="btn btn-ghost btn-sm" style="color:var(--primary);padding:4px 8px;font-size:0.72rem" onclick="event.stopPropagation();openDdayEditModal('${d.id}')">수정</button><button class="btn btn-ghost btn-sm" style="color:var(--danger);padding:4px 8px;font-size:0.72rem" onclick="event.stopPropagation();deleteDday('${d.id}')">삭제</button>`
+            const editBtn = isAdmin() && canEdit(d.createdAt)
+                ? `<button class="btn btn-ghost btn-sm" style="color:var(--primary);padding:4px 8px;font-size:0.72rem" onclick="event.stopPropagation();openDdayEditModal('${d.id}')">수정</button>`
                 : '';
+            const deleteBtn = isAdmin()
+                ? `<button class="btn btn-ghost btn-sm" style="color:var(--danger);padding:4px 8px;font-size:0.72rem" onclick="event.stopPropagation();deleteDday('${d.id}')">삭제</button>`
+                : '';
+            const adminBtns  = editBtn + deleteBtn;
 
             return `
             <div class="dday-card ${urgencyClass}">
@@ -149,6 +153,10 @@ function openDdayEditModal(id) {
     const ddays = DB.get('ddays');
     const dday = ddays.find(d => d.id === id);
     if (!dday) return;
+    if (!canEdit(dday.createdAt)) {
+        showToast('추가 후 24시간이 지난 D-Day는 수정할 수 없습니다.', 'warning');
+        return;
+    }
 
     const dateObj = new Date(dday.date + 'T00:00:00');
     const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth()+1).padStart(2,'0')}-${String(dateObj.getDate()).padStart(2,'0')}`;

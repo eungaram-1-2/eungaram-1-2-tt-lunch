@@ -52,3 +52,7 @@ function showToast(message, type = 'info') {
         setTimeout(() => toast.remove(), 300);
     }, 2500);
 }
+
+function canEdit(createdAt) {
+    return (Date.now() - createdAt) < 24 * 60 * 60 * 1000;
+}

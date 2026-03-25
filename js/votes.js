@@ -91,7 +91,11 @@ function renderVoteDetail() {
 
     let adminActions = '';
     if (isAdmin()) {
+        const editBtn = canEdit(vote.createdAt) && vote.voters.length === 0
+            ? `<button class="btn btn-outline btn-sm" onclick="openVoteEditModal('${vote.id}')">수정</button>`
+            : '';
         adminActions = `<div style="display:flex;gap:8px;margin-top:18px;padding-top:18px;border-top:1px solid var(--border-light)">
+            ${editBtn}
             ${vote.active ? `<button class="btn btn-outline btn-sm" onclick="closeVote('${vote.id}')">🔒 투표 마감</button>` : ''}
             <button class="btn btn-danger btn-sm" onclick="deleteVote('${vote.id}')">삭제</button>
         </div>`;
@@ -270,4 +274,50 @@ function deleteVote(voteId) {
     DB.set('votes', DB.get('votes').filter(v => v.id !== voteId));
     showToast('투표가 삭제되었습니다.', 'info');
     navigate('votes');
+}
+
+function openVoteEditModal(voteId) {
+    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+    const votes = DB.get('votes');
+    const vote = votes.find(v => v.id === voteId);
+    if (!vote) return;
+    if (!canEdit(vote.createdAt)) {
+        showToast('생성 후 24시간이 지난 투표는 수정할 수 없습니다.', 'warning');
+        return;
+    }
+    openModal('투표 수정', `
+        <div class="form-group">
+            <label>투표 제목</label>
+            <input type="text" class="form-input" id="editVoteTitle" maxlength="${Security.MAX_TITLE}" value="${escapeHtml(vote.title)}">
+        </div>
+        <div class="form-group">
+            <label>설명 (선택)</label>
+            <textarea class="form-textarea" id="editVoteDesc" rows="3" maxlength="${Security.MAX_CONTENT}">${escapeHtml(vote.description || '')}</textarea>
+        </div>
+        <div style="display:flex;gap:10px">
+            <button class="btn btn-outline" style="flex:1" onclick="closeModal()">취소</button>
+            <button class="btn btn-primary" style="flex:2" onclick="submitVoteEdit('${voteId}')">수정 완료</button>
+        </div>
+    `);
+}
+
+function submitVoteEdit(voteId) {
+    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+    const titleV = Security.validateTitle(document.getElementById('editVoteTitle').value);
+    if (!titleV.ok) { showToast(titleV.msg, 'warning'); return; }
+    const desc = Security.sanitize(document.getElementById('editVoteDesc').value);
+    const votes = DB.get('votes');
+    const idx = votes.findIndex(v => v.id === voteId);
+    if (idx === -1) return;
+    if (!canEdit(votes[idx].createdAt)) {
+        showToast('생성 후 24시간이 지난 투표는 수정할 수 없습니다.', 'warning');
+        return;
+    }
+    votes[idx].title = titleV.value;
+    votes[idx].description = desc;
+    votes[idx].editedAt = Date.now();
+    DB.set('votes', votes);
+    closeModal();
+    showToast('투표가 수정되었습니다.', 'success');
+    navigate('vote-detail', { id: voteId });
 }
