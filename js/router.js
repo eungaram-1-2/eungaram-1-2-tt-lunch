@@ -140,6 +140,7 @@ function render() {
         case 'vote-detail':  app.innerHTML = renderVoteDetail();        break;
         case 'vote-create':  app.innerHTML = renderVoteCreate();        break;
         case 'dday':         app.innerHTML = renderDday();              break;
+        case 'chat':         app.innerHTML = renderChat();              break;
         case 'links':        app.innerHTML = renderLinks();             break;
         case 'lunch':        app.innerHTML = renderLunch(); setTimeout(() => loadLunchPage(), 0); break;
         case 'admin':        app.innerHTML = renderAdmin();             break;
