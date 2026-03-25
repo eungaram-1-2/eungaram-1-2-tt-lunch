@@ -35,6 +35,7 @@ function renderHome() {
     // ── 공지사항 ──
     const allNotices = DB.get('notices');
     const noticesCount = allNotices.length;
+    console.log(`[renderHome] 공지사항 ${noticesCount}개 로드됨`, allNotices);
     const recentNotices = allNotices.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
 
     let timelineItems = '';

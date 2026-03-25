@@ -231,8 +231,12 @@ function submitPost(type) {
 
 function savePost(type, post) {
     const posts = DB.get(type);
+    console.log(`[savePost] type=${type}, 기존 글 수=${posts.length}, 새 글=${post.title}`);
     posts.push(post);
+    console.log(`[savePost] push 후 글 수=${posts.length}`);
     DB.set(type, posts);
+    const verify = DB.get(type);
+    console.log(`[savePost] 저장 후 확인: ${verify.length}개 글`);
     DB.set(`comments_${type}_${post.id}`, []);
     addLog('post_write', { postType: type, postId: post.id, title: post.title });
     if (type === 'board') {
