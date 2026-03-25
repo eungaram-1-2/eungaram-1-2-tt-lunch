@@ -15,9 +15,14 @@ function navigate(page, params = {}) {
     render();
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // 모바일 메뉴 자동 닫기
     const menu     = document.getElementById('navMenu');
+    const btn      = document.getElementById('hamburger');
     const backdrop = document.getElementById('menuBackdrop');
     if (menu)     menu.classList.remove('active');
+    if (btn)      btn.classList.remove('active');
+    if (btn)      btn.setAttribute('aria-expanded', 'false');
+    if (btn)      btn.setAttribute('aria-label', '메뉴 열기');
     if (backdrop) backdrop.classList.remove('active');
 }
 
@@ -193,6 +198,7 @@ function updateNav() {
 
 function toggleMenu() {
     const menu = document.getElementById('navMenu');
+    const btn  = document.getElementById('hamburger');
     let backdrop = document.getElementById('menuBackdrop');
     if (!backdrop) {
         backdrop = document.createElement('div');
@@ -200,12 +206,19 @@ function toggleMenu() {
         backdrop.className = 'menu-backdrop';
         backdrop.onclick = () => {
             menu.classList.remove('active');
+            btn && btn.classList.remove('active');
+            btn && btn.setAttribute('aria-expanded', 'false');
+            btn && btn.setAttribute('aria-label', '메뉴 열기');
             backdrop.classList.remove('active');
         };
         document.body.appendChild(backdrop);
     }
     menu.classList.toggle('active');
+    btn && btn.classList.toggle('active');
     backdrop.classList.toggle('active');
+    const isOpen = menu.classList.contains('active');
+    btn && btn.setAttribute('aria-expanded', isOpen);
+    btn && btn.setAttribute('aria-label', isOpen ? '메뉴 닫기' : '메뉴 열기');
 }
 
 // 스크롤 감지
