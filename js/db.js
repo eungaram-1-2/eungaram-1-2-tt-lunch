@@ -1,6 +1,13 @@
 // =============================================
-// 데이터 관리 (localStorage)
+// 데이터 관리 (localStorage + Firebase 동기화)
 // =============================================
+
+// Firebase에 동기화할 키 목록
+const _FB_SYNC_KEYS = ['notices', 'board', 'votes', 'ddays', 'bans', 'timeouts'];
+function _shouldSyncToFb(key) {
+    return _FB_SYNC_KEYS.includes(key) || key.startsWith('comments_');
+}
+
 const DB = {
     get(key, def = []) {
         try { return JSON.parse(localStorage.getItem(key)) || def; }
@@ -14,12 +21,50 @@ const DB = {
             const json = JSON.stringify(val);
             localStorage.setItem(key, json);
             console.log(`[DB.set] ✓ "${key}" 저장됨 (${json.length} bytes)`);
+            // Firebase에도 저장 (JSON 문자열로 저장하여 배열 구조 보존)
+            if (fbReady() && _shouldSyncToFb(key)) {
+                _fbDB.ref('data/' + key).set(json).catch(e => {
+                    console.warn('[Firebase] 쓰기 실패:', key, e);
+                });
+            }
         } catch (e) {
             console.error(`[DB.set] ✗ 저장 실패 (${key}):`, e.message);
         }
     },
-    remove(key)   { localStorage.removeItem(key); }
+    remove(key) {
+        localStorage.removeItem(key);
+        if (fbReady() && _shouldSyncToFb(key)) {
+            _fbDB.ref('data/' + key).remove().catch(() => {});
+        }
+    }
 };
+
+// Firebase → localStorage 실시간 동기화 리스너
+function startFirebaseSync(onFirstLoad) {
+    if (!fbReady()) {
+        onFirstLoad && onFirstLoad();
+        return;
+    }
+    let isFirst = true;
+    _fbDB.ref('data').on('value', snap => {
+        snap.forEach(child => {
+            const key   = child.key;
+            const jsonStr = child.val();
+            if (typeof jsonStr === 'string') {
+                try { localStorage.setItem(key, jsonStr); } catch(e) {}
+            }
+        });
+        if (isFirst) {
+            isFirst = false;
+            console.log('[Firebase] 데이터 동기화 완료');
+            onFirstLoad && onFirstLoad();
+        } else {
+            // 다른 기기에서 변경 → 현재 페이지 리렌더
+            console.log('[Firebase] 실시간 업데이트 감지 → 리렌더');
+            if (typeof render === 'function') render();
+        }
+    });
+}
 
 function currentUser() { return DB.get('currentUser', null); }
 function isAdmin()     { const u = currentUser(); return u && u.role === 'admin'; }

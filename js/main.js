@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateClock();
     setInterval(updateClock, 1000);
 
-    render();
+    // Firebase에서 데이터 동기화 후 렌더
+    startFirebaseSync(() => {
+        render();
+    });
 
     // 세션 연결 (새로고침 후에도 온라인 유지)
     if (isLoggedIn()) {
