@@ -25,10 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const u = currentUser();
         sessionConnect(u.id);
         sessionFetchIP(u.id);
-        // 브라우저 알림 권한 요청 → 허용 시 리스너 등록
-        requestNotifPermission().then(granted => {
-            if (granted) initNotifications();
-        });
     }
     // localStorage fallback heartbeat
     setInterval(() => { if (isLoggedIn()) sessionWriteHeartbeat(); }, 30000);

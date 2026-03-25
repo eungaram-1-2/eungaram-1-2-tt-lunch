@@ -32,8 +32,6 @@ function login() {
     });
     sessionConnect(account.id);
     sessionFetchIP(account.id);
-    // 로그인 시 알림 권한 요청
-    requestNotifPermission().then(granted => { if (granted) initNotifications(); });
     showToast(`${account.nickname}님, 환영합니다!`, 'success');
     navigate('home');
 }
