@@ -15,19 +15,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateClock();
     setInterval(updateClock, 1000);
 
-    // 채팅 내역 자정 초기화 (자동으로 Firebase DB까지 초기화됨)
-    cleanChatMessages();
+    // 즉시 localStorage 데이터로 렌더 (Firebase를 기다리지 않음)
+    render();
 
-    // Firebase에서 데이터 동기화 후 렌더
-    startFirebaseSync(() => {
-        render();
-    });
+    // Firebase 백그라운드 동기화 (업데이트가 오면 자동 re-render)
+    startFirebaseSync();
+
+    // 채팅 내역 자정 초기화 (렌더 후 지연 실행)
+    setTimeout(() => cleanChatMessages(), 0);
 
     // 세션 연결 (새로고침 후에도 온라인 유지)
     if (isLoggedIn()) {
         const u = currentUser();
         sessionConnect(u.id);
-        sessionFetchIP(u.id);
+        setTimeout(() => sessionFetchIP(u.id), 2000); // 2초 후로 지연
     }
     // localStorage fallback heartbeat
     setInterval(() => { if (isLoggedIn()) sessionWriteHeartbeat(); }, 30000);

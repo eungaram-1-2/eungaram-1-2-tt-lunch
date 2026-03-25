@@ -46,6 +46,16 @@ function startFirebaseSync(onFirstLoad) {
         return;
     }
     let isFirst = true;
+
+    // 3초 타임아웃: Firebase가 느리거나 실패해도 기존 데이터로 렌더
+    const _fallback = onFirstLoad ? setTimeout(() => {
+        if (isFirst) {
+            isFirst = false;
+            console.log('[Firebase] 타임아웃 → localStorage 데이터로 렌더');
+            onFirstLoad();
+        }
+    }, 3000) : null;
+
     _fbDB.ref('data').on('value', snap => {
         snap.forEach(child => {
             const key   = child.key;
@@ -56,8 +66,9 @@ function startFirebaseSync(onFirstLoad) {
         });
         if (isFirst) {
             isFirst = false;
+            if (_fallback) clearTimeout(_fallback);
             console.log('[Firebase] 데이터 동기화 완료');
-            onFirstLoad && onFirstLoad();
+            onFirstLoad ? onFirstLoad() : render();
         } else {
             // 다른 기기에서 변경 → 현재 페이지 리렌더
             console.log('[Firebase] 실시간 업데이트 감지 → 리렌더');
