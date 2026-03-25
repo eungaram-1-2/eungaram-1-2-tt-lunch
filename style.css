@@ -3665,6 +3665,10 @@ button { font-family: inherit; }
     margin-top: 10px;
 }
 
+.chat-msg .reaction-bar {
+    order: 3;
+}
+
 .reaction-btn {
     display: flex;
     align-items: center;
