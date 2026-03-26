@@ -99,8 +99,8 @@ function renderHome() {
         <div class="hero-grid"></div>
         <div class="hero-content">
             <div class="hero-badge">🏫 은가람 중학교 1학년 2반</div>
-            <h1>우리 반의 모든 것이<br><span class="highlight">한 곳에</span></h1>
-            <p>공지사항부터 시간표, 자유로운 소통까지<br>학급의 모든 정보와 활동을 스마트하게 관리하세요.</p>
+            <h1>서로 배우고<br><span class="highlight">함께 성장하는</span><br>공동체</h1>
+            <p>각자의 강점을 나누고 서로에게 배우며<br>모두가 함께 빛나는 1학년 2반입니다.</p>
             <button class="hero-btn" onclick="navigate(isLoggedIn() ? 'notices' : 'login')">
                 지금 시작하기 →
             </button>

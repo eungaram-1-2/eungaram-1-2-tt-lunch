@@ -28,7 +28,7 @@ function navigate(page, params = {}) {
 
 const BANNED_RESTRICTED   = ['board','board-detail','board-write','dday','logs','boardlog'];
 const TIMEOUT_RESTRICTED  = ['board','board-detail','board-write','dday','notices','notice-detail','notice-write','votes','vote-detail','vote-create','logs','boardlog'];
-const GUEST_ALLOWED       = ['home','login','timetable','lunch'];
+const GUEST_ALLOWED       = ['home','login','timetable','lunch','academic'];
 
 function renderLoginRequiredPage() {
     return `
@@ -136,6 +136,7 @@ function render() {
         case 'board-detail': app.innerHTML = renderPostDetail('board'); break;
         case 'board-write':  app.innerHTML = renderPostWrite('board');  break;
         case 'timetable':    app.innerHTML = renderTimetable();         break;
+        case 'academic':     renderAcademicCalendar();                  break;
         case 'votes':        app.innerHTML = renderVotes();             break;
         case 'vote-detail':  app.innerHTML = renderVoteDetail();        break;
         case 'vote-create':  app.innerHTML = renderVoteCreate();        break;
@@ -195,8 +196,8 @@ function updateNav() {
         const a = li.querySelector('a');
         if (!a) return;
         const p = a.getAttribute('onclick')?.match(/'(\w+)'/)?.[1];
-        // 비로그인 시 시간표, 급식만 표시
-        li.style.display = (!loggedIn && p !== 'timetable' && p !== 'lunch') ? 'none' : '';
+        // 비로그인 시 시간표, 급식, 학사일정만 표시
+        li.style.display = (!loggedIn && p !== 'timetable' && p !== 'lunch' && p !== 'academic') ? 'none' : '';
         a.classList.remove('active');
         if (p === currentPage ||
             (p === 'notices'   && currentPage.startsWith('notice')) ||
@@ -205,6 +206,7 @@ function updateNav() {
             (p === 'links'     && currentPage === 'links')          ||
             (p === 'dday'      && currentPage === 'dday')  ||
             (p === 'lunch'     && currentPage === 'lunch')  ||
+            (p === 'academic'  && currentPage === 'academic')  ||
             (p === 'admin'     && (currentPage === 'admin' || currentPage === 'logs'))) {
             a.classList.add('active');
         }
