@@ -178,24 +178,29 @@ function renderMonthCalendar() {
         const sundayClass = currentDate.getDay() === 0 ? 'sunday' : '';
         const saturdayClass = currentDate.getDay() === 6 ? 'saturday' : '';
 
-        const dayEvents = eventMap[currentDate.getDate()] || [];
-        let eventsHTML = `<div class="day-number">${currentDate.getDate()}</div>`;
+        // 현재 달 이후의 날짜(다음 달)는 빈 칸으로 처리
+        if (!isCurrentMonth && currentDate > lastDay) {
+            calendarHTML += `<div class="day other-month"></div>`;
+        } else {
+            const dayEvents = eventMap[currentDate.getDate()] || [];
+            let eventsHTML = `<div class="day-number">${currentDate.getDate()}</div>`;
 
-        dayEvents.forEach((event, idx) => {
-            if (idx < 2) {
-                eventsHTML += `<div class="day-event event-${event.category}" title="${event.title}">${event.title}</div>`;
+            dayEvents.forEach((event, idx) => {
+                if (idx < 2) {
+                    eventsHTML += `<div class="day-event event-${event.category}" title="${event.title}">${event.title}</div>`;
+                }
+            });
+
+            if (dayEvents.length > 2) {
+                eventsHTML += `<div class="day-event event-more">+${dayEvents.length - 2}</div>`;
             }
-        });
 
-        if (dayEvents.length > 2) {
-            eventsHTML += `<div class="day-event event-more">+${dayEvents.length - 2}</div>`;
+            calendarHTML += `
+                <div class="day ${dayClass} ${sundayClass} ${saturdayClass}">
+                    ${eventsHTML}
+                </div>
+            `;
         }
-
-        calendarHTML += `
-            <div class="day ${dayClass} ${sundayClass} ${saturdayClass}">
-                ${eventsHTML}
-            </div>
-        `;
 
         currentDate.setDate(currentDate.getDate() + 1);
     }
