@@ -32,6 +32,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // localStorage fallback heartbeat
     setInterval(() => { if (isLoggedIn()) sessionWriteHeartbeat(); }, 30000);
 
+    // 방문자 카운터 (Firebase 연결 후 실행)
+    setTimeout(() => trackVisit(), 1500);
+
     // Self-XSS 경고
     console.warn('%c⚠ 경고!', 'color:red;font-size:2rem;font-weight:bold');
     console.warn('이 콘솔에 코드를 붙여넣지 마세요. 계정이 탈취될 수 있습니다.');

@@ -56,11 +56,30 @@ function renderSeatDraw() {
                 onmouseout="this.style.background='rgba(239,68,68,0.08)'">
                 🗑 초기화
             </button>
+            <button onclick="saveSeatImage()"
+                style="padding:10px 16px;font-size:0.85rem;font-weight:600;border-radius:10px;
+                    background:rgba(6,182,212,0.08);color:#0891b2;border:1.5px solid rgba(6,182,212,0.25);
+                    cursor:pointer;transition:all 0.2s"
+                onmouseover="this.style.background='rgba(6,182,212,0.15)'"
+                onmouseout="this.style.background='rgba(6,182,212,0.08)'">
+                📸 이미지 저장
+            </button>
             <span style="font-size:0.75rem;color:var(--text-muted);white-space:nowrap">
                 셀 클릭 시 직접 편집
             </span>
         </div>
-    ` : '';
+    ` : `
+        <div style="display:flex;justify-content:flex-end;margin-bottom:24px">
+            <button onclick="saveSeatImage()"
+                style="padding:9px 16px;font-size:0.82rem;font-weight:600;border-radius:10px;
+                    background:rgba(6,182,212,0.08);color:#0891b2;border:1.5px solid rgba(6,182,212,0.25);
+                    cursor:pointer;transition:all 0.2s"
+                onmouseover="this.style.background='rgba(6,182,212,0.15)'"
+                onmouseout="this.style.background='rgba(6,182,212,0.08)'">
+                📸 이미지 저장
+            </button>
+        </div>
+    `;
 
     const statusBadge = saved
         ? `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);
@@ -259,6 +278,42 @@ function resetSeatDraw() {
 }
 
 let _seatAnimTimer = null;
+
+function saveSeatImage() {
+    const card = document.getElementById('seatGrid')?.closest('.card');
+    if (!card) { showToast('자리 배치가 없습니다.', 'warning'); return; }
+
+    if (typeof html2canvas === 'undefined') {
+        showToast('잠시 후 다시 시도해주세요.', 'warning'); return;
+    }
+
+    // 편집 아이콘 임시 숨김
+    const icons = card.querySelectorAll('[style*="position:absolute"][style*="right:7px"]');
+    icons.forEach(el => { el._prevDisplay = el.style.display; el.style.display = 'none'; });
+
+    showToast('이미지 저장 중...', 'info');
+
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    html2canvas(card, {
+        backgroundColor: isDark ? '#111827' : '#ffffff',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        allowTaint: true
+    }).then(canvas => {
+        icons.forEach(el => { el.style.display = el._prevDisplay || ''; });
+        const today = new Date();
+        const dateStr = `${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}`;
+        const link = document.createElement('a');
+        link.download = `자리배치_${dateStr}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast('📸 이미지가 저장되었습니다!', 'success');
+    }).catch(() => {
+        icons.forEach(el => { el.style.display = el._prevDisplay || ''; });
+        showToast('이미지 저장에 실패했습니다.', 'error');
+    });
+}
 
 function startSeatDraw() {
     if (!isAdmin()) { showToast('관리자만 자리를 뽑을 수 있습니다.', 'error'); return; }
