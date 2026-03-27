@@ -287,7 +287,6 @@
             font-weight: 500;
         }
         .lunch-kcal {
-            margin-left: auto;
             background: #fef3c7;
             color: #92400e;
             font-size: 13px;
@@ -673,7 +672,54 @@
             }
 
         }
+        /* 다운로드 버튼 */
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--purple-main);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(108,60,233,0.3);
+            transition: all 0.2s ease;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(108,60,233,0.4);
+        }
+        .download-btn:active { transform: translateY(0); }
+        .download-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+        /* 타임스탬프 */
+        .lunch-timestamp {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        /* 모바일 스크롤 최적화 */
+        .timetable-wrapper, .week-lunch-wrapper {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            .lunch-header { flex-wrap: wrap; gap: 8px; }
+            .lunch-kcal { margin-left: 0; }
+            .lunch-timestamp { margin-left: auto; }
+            .today-classes-container { -webkit-overflow-scrolling: touch; }
+        }
+
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -682,6 +728,7 @@
     <div class="header-title">
         <span>🗓️</span>
         <h1>제 1학년 2반 시간표</h1>
+        <button class="download-btn" onclick="downloadTimetable()">📥 시간표 저장</button>
     </div>
 
     <div class="live-clock" id="liveClock">00:00:00</div>
@@ -776,9 +823,10 @@
 
     <div class="lunch-wrapper">
         <div class="lunch-header">
-            <h2>은가람중학교 중식</h2>
+            <h2>은가람중학교 급식</h2>
             <span class="lunch-date" id="lunchDate"></span>
             <span class="lunch-kcal" id="lunchKcal" style="display:none;"></span>
+            <span class="lunch-timestamp" id="lunchTimestamp" style="display:none;"></span>
         </div>
         <div class="lunch-items" id="lunchItems">
             <span class="lunch-loading">급식 정보를 불러오는 중...</span>
@@ -1112,6 +1160,10 @@
                     itemsEl.innerHTML = items
                         .map(item => `<span class="lunch-item">${item}</span>`)
                         .join('');
+                    const ts = document.getElementById('lunchTimestamp');
+                    const now = new Date();
+                    ts.textContent = `업데이트: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+                    ts.style.display = '';
                 }
 
             } catch (e) {
@@ -1256,6 +1308,28 @@
             bodyHtml += '</tr>';
 
             weekEl.innerHTML = `<table class="week-lunch-table"><thead>${headerHtml}</thead><tbody>${bodyHtml}</tbody></table>`;
+        }
+
+        function downloadTimetable() {
+            const btn = document.querySelector('.download-btn');
+            const wrapper = document.querySelector('.timetable-wrapper');
+            btn.textContent = '⏳ 저장 중...';
+            btn.disabled = true;
+            html2canvas(wrapper, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: document.body.classList.contains('dark-mode') ? '#1e293b' : '#ffffff',
+            }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = '1학년2반_시간표.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                btn.textContent = '📥 시간표 저장';
+                btn.disabled = false;
+            }).catch(() => {
+                btn.textContent = '📥 시간표 저장';
+                btn.disabled = false;
+            });
         }
     </script>
 </body>
