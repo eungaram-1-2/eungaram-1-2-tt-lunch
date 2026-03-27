@@ -1158,21 +1158,21 @@
             const dayKey   = `today-${yyyy}${mm}${dd}`;
             const weekKey  = `week-${isoYear}W${ww}`;
             const monthKey = `month-${yyyy}${mm}`;
-            const base     = 'https://api.countapi.xyz';
+            const base     = 'https://api.counterapi.dev/v1';
 
             // 같은 브라우저에서 오늘 이미 방문했으면 중복 카운트 방지
             const visitedKey = `visited_${yyyy}${mm}${dd}`;
             const alreadyVisited = localStorage.getItem(visitedKey);
 
             const hit = async (key) => {
-                const r = await fetch(`${base}/hit/${namespace}/${key}`);
+                const r = await fetch(`${base}/${namespace}/${key}/up`);
                 const data = await r.json();
-                return data.value || 0;
+                return data.count || 0;
             };
             const get = async (key) => {
-                const r = await fetch(`${base}/get/${namespace}/${key}`);
+                const r = await fetch(`${base}/${namespace}/${key}`);
                 const data = await r.json();
-                return data.value || 0;
+                return data.count || 0;
             };
 
             try {
