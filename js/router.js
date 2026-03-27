@@ -143,6 +143,8 @@ function render() {
         case 'dday':         app.innerHTML = renderDday();              break;
         case 'chat':         app.innerHTML = renderChat();              break;
         case 'links':        app.innerHTML = renderLinks();             break;
+        case 'seat-draw':    app.innerHTML = renderSeatDraw();          break;
+        case 'change-password': app.innerHTML = renderChangePassword(); break;
         case 'lunch':        app.innerHTML = renderLunch(); setTimeout(() => loadLunchPage(), 0); break;
         case 'admin':        app.innerHTML = renderAdmin();             break;
         case 'logs':         app.innerHTML = renderLogs();              break;
@@ -169,6 +171,7 @@ function updateNav() {
                 ${banBadge}
                 <span class="nav-user-nick">${escapeHtml(user.nickname)}</span>
                 <span class="nav-auth-desktop">${adminBtn}
+                    <button class="btn btn-ghost btn-sm" onclick="navigate('change-password')">🔑 비번변경</button>
                     <button class="btn btn-ghost btn-sm" onclick="logout()">로그아웃</button>
                 </span>
             </div>`;
@@ -180,6 +183,7 @@ function updateNav() {
                 <div class="nav-menu-divider"></div>
                 <span class="nav-menu-user-label">${escapeHtml(user.nickname)} (${bt})</span>
                 ${user.role === 'admin' ? `<a href="#" onclick="navigate('admin')">⚙️ 관리자 대시보드</a>` : ''}
+                <a href="#" onclick="navigate('change-password')">🔑 비밀번호 변경</a>
                 <a href="#" onclick="logout()">🚪 로그아웃</a>`;
         }
     } else {
