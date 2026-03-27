@@ -95,6 +95,6 @@ const QUICK_LINKS = [
     { icon:'⏰', title:'D-Day',                   desc:'주요 일정 카운트다운',     page:'dday', color:'#f97316' },
     { icon:'📋', title:'학교 정보',               desc:'학교 알리미 정보 공개',    url:'https://www.schoolinfo.go.kr/ei/ss/Pneiss_b01_s0.do?SHL_IDF_CD=5279faf7-723c-4be3-985f-fb64171392e7', color:'#ec4899' },
     { icon:'📮', title:'건의함',                  desc:'의견 및 건의사항 제출',    url:'https://docs.google.com/forms/u/0/d/e/1FAIpQLSc1s4oIvfvoT_GbvdFU95ZglDqYvsfngXrwZOaiaeDDC2NsiA/formResponse', color:'#14b8a6' },
-    { icon:'💬', title:'1-2반 건의함',         desc:'웹사이트 피드백 및 건의',   url:'https://docs.google.com/forms/d/e/1FAIpQLScUFM4zrlhQRJrgg0bXX33IiNY2nynXp4STqQsypHCHFb7byQ/viewform', color:'#ef4444' },
-    { icon:'🎲', title:'자리 뽑기',             desc:'랜덤 좌석 배정 (관리자)',   page:'seat-draw', color:'#8b5cf6' }
+    { icon:'💬', title:'1-2반 건의함',         desc:'웹사이트 피드백 및 건의',   url:'https://docs.google.com/forms/d/e/1FAIpQLScUFM4zrlhQRJrgg0bXX33IiNY2nynXp4STqQsypHCHFb7byQ/viewform', color:'#ef4444' }
+    // { icon:'🎲', title:'자리 뽑기',             desc:'랜덤 좌석 배정 (관리자)',   page:'seat-draw', color:'#8b5cf6' }
 ];
