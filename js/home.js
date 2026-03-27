@@ -121,6 +121,9 @@ function renderHome() {
         <div class="quick-pill" onclick="navigate('timetable')">
             <span class="quick-pill-icon">📅</span><span>시간표</span>
         </div>
+        <div class="quick-pill" onclick="navigate('academic')">
+            <span class="quick-pill-icon">🗓️</span><span>학사일정</span>
+        </div>
         <div class="quick-pill" onclick="navigate('lunch')">
             <span class="quick-pill-icon">🍱</span><span>급식</span>
         </div>

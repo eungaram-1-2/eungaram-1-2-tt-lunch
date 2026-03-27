@@ -143,7 +143,7 @@ function render() {
         case 'dday':         app.innerHTML = renderDday();              break;
         case 'chat':         app.innerHTML = renderChat();              break;
         case 'links':        app.innerHTML = renderLinks();             break;
-        case 'seat-draw':    app.innerHTML = renderSeatDraw();          break;
+        // case 'seat-draw':    app.innerHTML = renderSeatDraw();          break;
         case 'change-password': app.innerHTML = renderChangePassword(); break;
         case 'lunch':        app.innerHTML = renderLunch(); setTimeout(() => loadLunchPage(), 0); break;
         case 'admin':        app.innerHTML = renderAdmin();             break;
