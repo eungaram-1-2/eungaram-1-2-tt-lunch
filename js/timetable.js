@@ -70,34 +70,28 @@ function renderTimetable() {
     </div>`;
 }
 
-// 시간표 저장
-function downloadTimetable() {
-    const dow = new Date().getDay();
-    const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+// 시간표 저장 (이미지)
+async function downloadTimetable() {
+    const table = document.querySelector('.timetable');
+    if (!table) {
+        showToast('시간표를 찾을 수 없습니다.', 'error');
+        return;
+    }
 
-    let text = '📅 은가람 중학교 1학년 2반 시간표\n';
-    text += `저장일시: ${new Date().toLocaleString('ko-KR')}\n\n`;
-
-    // 표 형식
-    text += '교시      월요일          화요일          수요일          목요일          금요일\n';
-    text += '─'.repeat(70) + '\n';
-
-    TIMETABLE.periods.forEach((p, pi) => {
-        let row = `${p.num}교시  `;
-        TIMETABLE.days.forEach((d, di) => {
-            const c = TIMETABLE.schedule[pi][di];
-            const subject = (c && c.s) ? `${c.s}(${c.t})` : '—';
-            row += subject.padEnd(15);
+    try {
+        const canvas = await html2canvas(table, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            padding: 10,
+            logging: false
         });
-        text += row + '\n';
-    });
 
-    // 다운로드
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `시간표_${new Date().toISOString().split('T')[0]}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `시간표_${new Date().toISOString().split('T')[0]}.png`;
+        link.click();
+    } catch (err) {
+        console.error('시간표 저장 실패:', err);
+        showToast('시간표 저장에 실패했습니다.', 'error');
+    }
 }

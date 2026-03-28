@@ -288,45 +288,27 @@ async function loadLunchPage() {
 
 // 급식 저장
 async function downloadLunch() {
-    const weeklyData = await fetchWeeklyLunch();
-    const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+    const table = document.querySelector('.lunch-table-horizontal');
+    if (!table) {
+        showToast('급식 표를 찾을 수 없습니다.', 'error');
+        return;
+    }
 
-    let text = '🍱 은가람 중학교 이번 주 급식\n';
-    text += `저장일시: ${new Date().toLocaleString('ko-KR')}\n\n`;
+    try {
+        const canvas = await html2canvas(table, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            padding: 10,
+            logging: false
+        });
 
-    // 요일별 급식
-    weeklyData.forEach(day => {
-        text += `📅 ${day.day}요일 (${day.displayDate})\n`;
-        if (day.items.length === 0) {
-            text += '  - 급식 정보 없음\n';
-        } else {
-            day.items.forEach(item => {
-                // 알레르기 번호 제거하고 텍스트만 표시
-                const cleanedItem = item.replace(/\([\d.]+\)/g, '').trim();
-                text += `  - ${cleanedItem}\n`;
-            });
-        }
-        if (day.kcal) {
-            text += `  🔥 ${day.kcal} kcal\n`;
-        }
-        text += '\n';
-    });
-
-    // 알레르기 정보
-    text += '\n🚨 알레르기 정보\n';
-    text += '─'.repeat(40) + '\n';
-    Object.entries(ALLERGEN_MAP).forEach(([num, name]) => {
-        text += `${num}.${name}  `;
-        if (num % 5 === 0) text += '\n';
-    });
-
-    // 다운로드
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    const firstDay = weeklyData[0].displayDate;
-    link.download = `급식_${firstDay.replace(/\./g, '-')}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        const today = new Date().toISOString().split('T')[0];
+        link.download = `급식_${today}.png`;
+        link.click();
+    } catch (err) {
+        console.error('급식 저장 실패:', err);
+        showToast('급식 저장에 실패했습니다.', 'error');
+    }
 }
