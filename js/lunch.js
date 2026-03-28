@@ -188,6 +188,7 @@ function renderLunch() {
         <div class="page-header">
             <h2>🍱 이번 주 급식</h2>
             <p>은가람 중학교</p>
+            <button class="btn btn-primary" onclick="downloadLunch()" style="margin-top:12px">📥 급식 저장</button>
         </div>
         <div class="container" style="max-width:900px;margin:0 auto;padding:0 20px 60px">
             <div class="allergen-panel" id="allergenPanel">
@@ -283,4 +284,49 @@ async function loadLunchPage() {
                 <tbody>${menuRows}${kcalRow}</tbody>
             </table>
         </div>`;
+}
+
+// 급식 저장
+async function downloadLunch() {
+    const weeklyData = await fetchWeeklyLunch();
+    const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+
+    let text = '🍱 은가람 중학교 이번 주 급식\n';
+    text += `저장일시: ${new Date().toLocaleString('ko-KR')}\n\n`;
+
+    // 요일별 급식
+    weeklyData.forEach(day => {
+        text += `📅 ${day.day}요일 (${day.displayDate})\n`;
+        if (day.items.length === 0) {
+            text += '  - 급식 정보 없음\n';
+        } else {
+            day.items.forEach(item => {
+                // 알레르기 번호 제거하고 텍스트만 표시
+                const cleanedItem = item.replace(/\([\d.]+\)/g, '').trim();
+                text += `  - ${cleanedItem}\n`;
+            });
+        }
+        if (day.kcal) {
+            text += `  🔥 ${day.kcal} kcal\n`;
+        }
+        text += '\n';
+    });
+
+    // 알레르기 정보
+    text += '\n🚨 알레르기 정보\n';
+    text += '─'.repeat(40) + '\n';
+    Object.entries(ALLERGEN_MAP).forEach(([num, name]) => {
+        text += `${num}.${name}  `;
+        if (num % 5 === 0) text += '\n';
+    });
+
+    // 다운로드
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const firstDay = weeklyData[0].displayDate;
+    link.download = `급식_${firstDay.replace(/\./g, '-')}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
 }

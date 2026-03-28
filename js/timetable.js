@@ -56,6 +56,7 @@ function renderTimetable() {
         <div class="page-header">
             <h2>📅 1학년 2반 시간표</h2>
             <p style="font-size:0.88rem;color:var(--text-muted)">은가람 중학교</p>
+            <button class="btn btn-primary" onclick="downloadTimetable()" style="margin-top:12px">📥 시간표 저장</button>
         </div>
         ${todayBarHtml}
         <div class="card card-body">
@@ -67,4 +68,36 @@ function renderTimetable() {
             </div>
         </div>
     </div>`;
+}
+
+// 시간표 저장
+function downloadTimetable() {
+    const dow = new Date().getDay();
+    const dayLabels = ['일', '월', '화', '수', '목', '금', '토'];
+
+    let text = '📅 은가람 중학교 1학년 2반 시간표\n';
+    text += `저장일시: ${new Date().toLocaleString('ko-KR')}\n\n`;
+
+    // 표 형식
+    text += '교시      월요일          화요일          수요일          목요일          금요일\n';
+    text += '─'.repeat(70) + '\n';
+
+    TIMETABLE.periods.forEach((p, pi) => {
+        let row = `${p.num}교시  `;
+        TIMETABLE.days.forEach((d, di) => {
+            const c = TIMETABLE.schedule[pi][di];
+            const subject = (c && c.s) ? `${c.s}(${c.t})` : '—';
+            row += subject.padEnd(15);
+        });
+        text += row + '\n';
+    });
+
+    // 다운로드
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `시간표_${new Date().toISOString().split('T')[0]}.txt`;
+    link.click();
+    URL.revokeObjectURL(url);
 }
