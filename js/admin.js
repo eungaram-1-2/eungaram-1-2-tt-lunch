@@ -143,12 +143,14 @@ function _buildAdminRows() {
             ? `<span class="adm-badge adm-badge-online"><span class="adm-dot"></span>접속중</span>`
             : `<span class="adm-badge adm-badge-offline">${lastSeen ? _formatLastSeen(lastSeen) : '미접속'}</span>`;
 
-        const banBtn = banned
-            ? `<button class="adm-btn adm-btn-safe" onclick="unbanUser('${escapeHtml(u.id)}')">해제</button>`
-            : `<button class="adm-btn adm-btn-danger" onclick="banUser('${escapeHtml(u.id)}')">정지</button>`;
-        const toBtn = timeout
-            ? `<button class="adm-btn adm-btn-safe" onclick="clearTimeoutUser('${escapeHtml(u.id)}')">TO 해제</button>`
-            : `<button class="adm-btn adm-btn-warn" onclick="showTimeoutModal('${escapeHtml(u.id)}')">⏳</button>`;
+        // const banBtn = banned
+        //     ? `<button class="adm-btn adm-btn-safe" onclick="unbanUser('${escapeHtml(u.id)}')">해제</button>`
+        //     : `<button class="adm-btn adm-btn-danger" onclick="banUser('${escapeHtml(u.id)}')">정지</button>`;
+        const banBtn = ''; // 정지 기능 비활성화
+        // const toBtn = timeout
+        //     ? `<button class="adm-btn adm-btn-safe" onclick="clearTimeoutUser('${escapeHtml(u.id)}')">TO 해제</button>`
+        //     : `<button class="adm-btn adm-btn-warn" onclick="showTimeoutModal('${escapeHtml(u.id)}')">⏳</button>`;
+        const toBtn = ''; // 타임아웃 기능 비활성화
 
         const rowBg = online ? 'adm-row-online' : banned ? 'adm-row-banned' : '';
 
@@ -372,123 +374,66 @@ function renderAdmin() {
     </div>`;
 }
 
-function banUser(userId) {
-    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
-    const account = ACCOUNTS.find(a => a.id === userId);
-    if (!account) return;
-    if (account.role === 'admin') { showToast('관리자는 정지할 수 없습니다.', 'error'); return; }
-    if (!confirm(`${account.nickname}을(를) 정지하시겠습니까?`)) return;
-    const bans = DB.get('bans');
-    if (!bans.includes(userId)) { bans.push(userId); DB.set('bans', bans); }
-    addLog('ban_user', { targetId: userId, targetName: account.username, targetNick: account.nickname });
-    showToast(`${account.nickname}이(가) 정지되었습니다.`, 'info');
-    navigate('admin');
-}
+// [정지 기능 비활성화]
+// function banUser(userId) {
+//     if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+//     const account = ACCOUNTS.find(a => a.id === userId);
+//     if (!account) return;
+//     if (account.role === 'admin') { showToast('관리자는 정지할 수 없습니다.', 'error'); return; }
+//     if (!confirm(`${account.nickname}을(를) 정지하시겠습니까?`)) return;
+//     const bans = DB.get('bans');
+//     if (!bans.includes(userId)) { bans.push(userId); DB.set('bans', bans); }
+//     addLog('ban_user', { targetId: userId, targetName: account.username, targetNick: account.nickname });
+//     showToast(`${account.nickname}이(가) 정지되었습니다.`, 'info');
+//     navigate('admin');
+// }
 
-function unbanUser(userId) {
-    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
-    const account = ACCOUNTS.find(a => a.id === userId);
-    const name = account ? account.nickname : userId;
-    if (!confirm(`${name}의 정지를 해제하시겠습니까?`)) return;
-    DB.set('bans', DB.get('bans').filter(id => id !== userId));
-    addLog('unban_user', { targetId: userId, targetName: account?.username || userId, targetNick: name });
-    showToast(`${name}의 정지가 해제되었습니다.`, 'success');
-    navigate('admin');
-}
+// function unbanUser(userId) {
+//     if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+//     const account = ACCOUNTS.find(a => a.id === userId);
+//     const name = account ? account.nickname : userId;
+//     if (!confirm(`${name}의 정지를 해제하시겠습니까?`)) return;
+//     DB.set('bans', DB.get('bans').filter(id => id !== userId));
+//     addLog('unban_user', { targetId: userId, targetName: account?.username || userId, targetNick: name });
+//     showToast(`${name}의 정지가 해제되었습니다.`, 'success');
+//     navigate('admin');
+// }
 
-// ── 타임아웃 ──────────────────────────────────
-function showTimeoutModal(userId) {
-    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
-    const account = ACCOUNTS.find(a => a.id === userId);
-    if (!account) return;
+// [타임아웃 기능 비활성화]
+// function showTimeoutModal(userId) {
+//     if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+//     const account = ACCOUNTS.find(a => a.id === userId);
+//     if (!account) return;
+//     openModal(`⏳ 타임아웃 설정 — ${escapeHtml(account.nickname)}`, `...`);
+// }
 
-    openModal(`⏳ 타임아웃 설정 — ${escapeHtml(account.nickname)}`, `
-        <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:20px">
-            지정한 시간이 지나면 자동으로 해제됩니다.
-        </p>
-        <div class="timeout-picker">
-            <div class="timeout-picker-unit">
-                <input type="number" id="toDays"  class="timeout-input" min="0" max="365" value="0" oninput="this.value=Math.max(0,parseInt(this.value)||0)">
-                <label>일</label>
-            </div>
-            <div class="timeout-picker-sep">:</div>
-            <div class="timeout-picker-unit">
-                <input type="number" id="toHours" class="timeout-input" min="0" max="23"  value="0" oninput="this.value=Math.min(23,Math.max(0,parseInt(this.value)||0))">
-                <label>시간</label>
-            </div>
-            <div class="timeout-picker-sep">:</div>
-            <div class="timeout-picker-unit">
-                <input type="number" id="toMins"  class="timeout-input" min="0" max="59"  value="0" oninput="this.value=Math.min(59,Math.max(0,parseInt(this.value)||0))">
-                <label>분</label>
-            </div>
-            <div class="timeout-picker-sep">:</div>
-            <div class="timeout-picker-unit">
-                <input type="number" id="toSecs"  class="timeout-input" min="0" max="59"  value="0" oninput="this.value=Math.min(59,Math.max(0,parseInt(this.value)||0))">
-                <label>초</label>
-            </div>
-        </div>
-        <div id="timeoutPreview" style="text-align:center;font-size:0.82rem;color:var(--primary);min-height:1.4em;margin:14px 0 4px"></div>
-        <div style="display:flex;gap:10px;margin-top:16px">
-            <button class="btn btn-outline" style="flex:1" onclick="closeModal()">취소</button>
-            <button class="btn btn-timeout" style="flex:2" onclick="applyTimeoutUser('${escapeHtml(userId)}')">타임아웃 적용</button>
-        </div>
-        <script>
-            (function() {
-                function updatePreview() {
-                    const d = parseInt(document.getElementById('toDays').value)||0;
-                    const h = parseInt(document.getElementById('toHours').value)||0;
-                    const m = parseInt(document.getElementById('toMins').value)||0;
-                    const s = parseInt(document.getElementById('toSecs').value)||0;
-                    const ms = (d*86400+h*3600+m*60+s)*1000;
-                    const el = document.getElementById('timeoutPreview');
-                    if (!el) return;
-                    if (ms <= 0) { el.textContent = ''; return; }
-                    const until = new Date(Date.now()+ms);
-                    const pad = n => String(n).padStart(2,'0');
-                    const days = ['일','월','화','수','목','금','토'];
-                    el.textContent = '해제 시각: '+until.getFullYear()+'.'+pad(until.getMonth()+1)+'.'+pad(until.getDate())+' ('+days[until.getDay()]+') '+pad(until.getHours())+':'+pad(until.getMinutes())+':'+pad(until.getSeconds());
-                }
-                ['toDays','toHours','toMins','toSecs'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.addEventListener('input', updatePreview);
-                });
-            })();
-        <\/script>
-    `);
-}
+// function applyTimeoutUser(userId) {
+//     if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+//     const d  = parseInt(document.getElementById('toDays').value)  || 0;
+//     const h  = parseInt(document.getElementById('toHours').value) || 0;
+//     const m  = parseInt(document.getElementById('toMins').value)  || 0;
+//     const s  = parseInt(document.getElementById('toSecs').value)  || 0;
+//     const ms = (d * 86400 + h * 3600 + m * 60 + s) * 1000;
+//     if (ms <= 0) { showToast('시간을 1초 이상 설정해주세요.', 'warning'); return; }
+//     const account = ACCOUNTS.find(a => a.id === userId);
+//     const name    = account ? account.nickname : userId;
+//     setUserTimeout(userId, ms);
+//     addLog('timeout_user', { ... });
+//     closeModal();
+//     showToast(`${name}에게 타임아웃이 적용되었습니다.`, 'info');
+//     navigate('admin');
+// }
 
-function applyTimeoutUser(userId) {
-    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
-    const d  = parseInt(document.getElementById('toDays').value)  || 0;
-    const h  = parseInt(document.getElementById('toHours').value) || 0;
-    const m  = parseInt(document.getElementById('toMins').value)  || 0;
-    const s  = parseInt(document.getElementById('toSecs').value)  || 0;
-    const ms = (d * 86400 + h * 3600 + m * 60 + s) * 1000;
-
-    if (ms <= 0) { showToast('시간을 1초 이상 설정해주세요.', 'warning'); return; }
-
-    const account = ACCOUNTS.find(a => a.id === userId);
-    const name    = account ? account.nickname : userId;
-
-    setUserTimeout(userId, ms);
-    const pad = n => String(n).padStart(2,'0');
-    const durationStr = `${d}일 ${pad(h)}:${pad(m)}:${pad(s)}`;
-    addLog('timeout_user', { targetId: userId, targetName: account?.username || userId, targetNick: name, duration: durationStr, durationMs: ms });
-    closeModal();
-    showToast(`${name}에게 타임아웃이 적용되었습니다.`, 'info');
-    navigate('admin');
-}
-
-function clearTimeoutUser(userId) {
-    if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
-    const account = ACCOUNTS.find(a => a.id === userId);
-    const name    = account ? account.nickname : userId;
-    if (!confirm(`${name}의 타임아웃을 해제하시겠습니까?`)) return;
-    clearUserTimeout(userId);
-    addLog('clear_timeout', { targetId: userId, targetName: account?.username || userId, targetNick: name });
-    showToast(`${name}의 타임아웃이 해제되었습니다.`, 'success');
-    navigate('admin');
-}
+// function clearTimeoutUser(userId) {
+//     if (!isAdmin()) { showToast('권한이 없습니다.', 'error'); return; }
+//     const account = ACCOUNTS.find(a => a.id === userId);
+//     const name    = account ? account.nickname : userId;
+//     if (!confirm(`${name}의 타임아웃을 해제하시겠습니까?`)) return;
+//     clearUserTimeout(userId);
+//     addLog('clear_timeout', { ... });
+//     showToast(`${name}의 타임아웃이 해제되었습니다.`, 'success');
+//     navigate('admin');
+// }
 
 // ── 비밀번호 조회 ──────────────────────────────
 const PW_VIEW_MASTER = '1234';
