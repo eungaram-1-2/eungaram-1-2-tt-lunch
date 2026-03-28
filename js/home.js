@@ -87,7 +87,7 @@ function renderHome() {
     const lunchHtml = renderLunchWidget();
     setTimeout(() => loadLunchWidget(), 0);
 
-    setTimeout(() => _initHeroCanvas(), 0);
+    setTimeout(() => { _initHeroCanvas(); _initHeroClock(); }, 0);
 
     return `
     <div class="hero">
@@ -99,15 +99,12 @@ function renderHome() {
         <div class="hero-grid"></div>
         <div class="hero-content">
             <div class="hero-badge">🏫 은가람 중학교 1학년 2반</div>
-            <h1>서로 배우고<br><span class="highlight">함께 성장하는</span><br>공동체</h1>
-            <p>각자의 강점을 나누고 서로에게 배우며<br>모두가 함께 빛나는 1학년 2반입니다.</p>
-            <button class="hero-btn" onclick="navigate(isLoggedIn() ? 'notices' : 'login')">
-                지금 시작하기 →
-            </button>
-            <div class="hero-stats">
-                <div class="hero-stat-pill"><span>📢</span><span>${noticesCount}개 공지</span></div>
-                <div class="hero-stat-pill"><span>🏫</span><span>1학년 2반</span></div>
-                <div class="hero-stat-pill"><span>📅</span><span>${todayDow}요일</span></div>
+            <h1>서로 배우고<br>함께 성장하는<br>공동체</h1>
+            <p>급식·시간표·학사일정·교가등을 한 곳에서 확인하세요!!</p>
+            <div class="hero-clock" id="heroClock"></div>
+            <div class="hero-btn-row">
+                <button class="hero-btn hero-btn-primary" onclick="navigate('lunch')">🍴 오늘 급식</button>
+                <button class="hero-btn hero-btn-outline" onclick="navigate('timetable')">📅 시간표</button>
             </div>
         </div>
     </div>
@@ -127,7 +124,7 @@ function renderHome() {
         <div class="quick-pill" onclick="navigate('lunch')">
             <span class="quick-pill-icon">🍱</span><span>급식</span>
         </div>
-        <div class="quick-pill" onclick="navigate('board')">
+        <!-- <div class="quick-pill" onclick="navigate('board')">
             <span class="quick-pill-icon">💬</span><span>게시판</span>
         </div>
         <div class="quick-pill" onclick="navigate('dday')">
@@ -135,7 +132,7 @@ function renderHome() {
         </div>
         <div class="quick-pill" onclick="navigate('votes')">
             <span class="quick-pill-icon">🗳️</span><span>투표</span>
-        </div>
+        </div> -->
         <div class="quick-pill" onclick="navigate('links')">
             <span class="quick-pill-icon">🔗</span><span>바로가기</span>
         </div>
@@ -155,11 +152,11 @@ function renderHome() {
         </div>
         <div class="home-side-col">
             ${lunchHtml}
-            <div class="side-widget">
+            <!-- <div class="side-widget">
                 <div class="side-widget-title"><span>⏰</span> 다가오는 일정</div>
                 ${sideDdayItems}
                 <button class="btn btn-ghost btn-sm" onclick="navigate('dday')" style="margin-top:10px;font-size:0.8rem;color:var(--primary);width:100%">전체 일정 보기 →</button>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -183,7 +180,28 @@ function renderHome() {
                     <p>오늘 수업을<br>한눈에.</p>
                 </div>
             </div>
-            <div class="feature-card" onclick="navigate('board')">
+            <div class="feature-card" onclick="navigate('lunch')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">🍱</div>
+                    <h3>오늘의 급식</h3>
+                    <p>매일 업데이트되는<br>식단 정보.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="navigate('academic')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">🗓️</div>
+                    <h3>학사일정</h3>
+                    <p>학교 주요 일정을<br>한눈에 확인.</p>
+                </div>
+            </div>
+            <div class="feature-card" onclick="navigate('links')">
+                <div class="feature-card-inner">
+                    <div class="feature-icon">🔗</div>
+                    <h3>바로가기</h3>
+                    <p>자주 쓰는 링크를<br>한 곳에서.</p>
+                </div>
+            </div>
+            <!-- <div class="feature-card" onclick="navigate('board')">
                 <div class="feature-card-inner">
                     <div class="feature-icon">💬</div>
                     <h3>자유게시판</h3>
@@ -210,11 +228,11 @@ function renderHome() {
                     <h3>건의함</h3>
                     <p>의견을<br>자유롭게 제출.</p>
                 </div>
-            </div>
+            </div> -->
         </div>
     </div>
 
-    <div class="school-info-section">
+    <!-- <div class="school-info-section">
         <div class="section-header">
             <h2>🏫 은가람 중학교 소개</h2>
             <p>우리 학교를 소개합니다</p>
@@ -265,7 +283,7 @@ function renderHome() {
                 </div>
             </div>
         </div>
-    </div>`;
+    </div> -->`;
 }
 
 // =============================================
@@ -365,4 +383,36 @@ function _initHeroCanvas() {
     obs.observe(hero);
 
     window.addEventListener('resize', resize, { passive: true });
+}
+
+// =============================================
+// 히어로 실시간 시계
+// =============================================
+let _heroClockTimer = null;
+
+function _initHeroClock() {
+    if (_heroClockTimer) { clearInterval(_heroClockTimer); _heroClockTimer = null; }
+    const el = document.getElementById('heroClock');
+    if (!el) return;
+
+    const dayNames = ['일', '월', '화', '수', '목', '금', '토'];
+    function tick() {
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const dow = dayNames[now.getDay()];
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const clockEl = document.getElementById('heroClock');
+        if (clockEl) {
+            clockEl.textContent = `${y}.${m}.${d} (${dow}) ${hh}:${mm}:${ss}`;
+        } else {
+            clearInterval(_heroClockTimer);
+            _heroClockTimer = null;
+        }
+    }
+    tick();
+    _heroClockTimer = setInterval(tick, 1000);
 }

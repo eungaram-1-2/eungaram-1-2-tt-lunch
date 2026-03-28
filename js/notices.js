@@ -15,6 +15,9 @@ let searchQueries = { notices: '', board: '' };
 let selectedNoticeCategory = 'all';
 
 function renderNotices() {
+    // 공지사항 페이지 접속 시 뱃지 제거 및 마지막 조회 시간 저장
+    clearNoticeBadge();
+    localStorage.setItem('lastNoticeViewTime', Date.now().toString());
     return renderPostList('notices', '📢 공지사항', isAdmin());
 }
 

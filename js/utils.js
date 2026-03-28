@@ -56,3 +56,35 @@ function showToast(message, type = 'info') {
 function canEdit(createdAt) {
     return (Date.now() - createdAt) < 24 * 60 * 60 * 1000;
 }
+
+// =============================================
+// 공지사항 뱃지 관리
+// =============================================
+function updateNoticeBadge() {
+    const notices = DB.get('notices');
+    if (!notices || notices.length === 0) {
+        document.getElementById('noticeBadge').textContent = '';
+        return;
+    }
+
+    // 마지막 조회 시간 이후의 공지사항 개수 계산
+    const lastViewTime = parseInt(localStorage.getItem('lastNoticeViewTime') || '0', 10);
+    const newNotices = notices.filter(n => n.createdAt > lastViewTime);
+
+    const badge = document.getElementById('noticeBadge');
+    const count = newNotices.length;
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = 'inline-flex';
+    } else {
+        badge.textContent = '';
+        badge.style.display = 'none';
+    }
+}
+
+function clearNoticeBadge() {
+    const badge = document.getElementById('noticeBadge');
+    badge.textContent = '';
+    badge.style.display = 'none';
+}

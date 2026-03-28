@@ -89,23 +89,23 @@ function renderAcademicCalendar() {
 
             <div class="legend">
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #ff6b6b;"></span>
+                    <span class="legend-color" style="background: #ef4444;"></span>
                     <span>중요 행사</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #4ecdc4;"></span>
+                    <span class="legend-color" style="background: #3b82f6;"></span>
                     <span>시험</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #ffd93d;"></span>
+                    <span class="legend-color" style="background: #eab308;"></span>
                     <span>학교행사</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #a8e6cf;"></span>
+                    <span class="legend-color" style="background: #22c55e;"></span>
                     <span>교육</span>
                 </div>
                 <div class="legend-item">
-                    <span class="legend-color" style="background: #ffe66d;"></span>
+                    <span class="legend-color" style="background: #d946ef;"></span>
                     <span>휴일</span>
                 </div>
             </div>

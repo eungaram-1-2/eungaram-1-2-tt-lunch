@@ -72,6 +72,8 @@ function startFirebaseSync(onFirstLoad) {
         } else {
             // 다른 기기에서 변경 → 현재 페이지 리렌더
             console.log('[Firebase] 실시간 업데이트 감지 → 리렌더');
+            // 공지사항 뱃지 업데이트
+            if (typeof updateNoticeBadge === 'function') updateNoticeBadge();
             if (typeof render === 'function') render();
         }
     });

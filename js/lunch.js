@@ -3,6 +3,23 @@
 // =============================================
 const LUNCH_DATA_URL = 'data/lunch.json';
 
+// 음식명에서 알레르기 정보 파싱 및 포맷팅
+function cleanMenuItem(text) {
+    if (!text) return '';
+    // 알레르기 번호 파싱: (1.5.6.10) 형태
+    const allergenMatch = text.match(/\(([\d.]+)\)/);
+    const allergenNums = allergenMatch
+        ? allergenMatch[1].split('.').map(Number).filter(n => ALLERGEN_MAP[n]).sort((a, b) => a - b)
+        : [];
+    // 알레르기 번호 및 크기 표시 제거
+    const name = text.replace(/\([\d.]+\)/g, '').replace(/\([가-힣]+\)/g, '').trim();
+    if (!name) return '';
+    const allergenHtml = allergenNums.length
+        ? `<span class="allergen-list" title="${allergenNums.map(n => `${n}.${ALLERGEN_MAP[n]}`).join(', ')}">${allergenNums.join('·')}</span>`
+        : '';
+    return `${name}${allergenHtml}`;
+}
+
 function _lunchTodayStr() {
     const d = new Date();
     const p = n => String(n).padStart(2, '0');
@@ -154,7 +171,7 @@ async function loadLunchWidget() {
 
     const kcalBadge = menu.kcal ? `<span class="lunch-kcal">${menu.kcal} kcal</span>` : '';
     const itemsHtml = menu.items.map(item =>
-        `<li class="lunch-item">${escapeHtml(item)}</li>`
+        `<li class="lunch-item">${cleanMenuItem(item)}</li>`
     ).join('');
 
     body.innerHTML = `
@@ -173,6 +190,33 @@ function renderLunch() {
             <p>은가람 중학교</p>
         </div>
         <div class="container" style="max-width:900px;margin:0 auto;padding:0 20px 60px">
+            <div class="allergen-panel" id="allergenPanel">
+                <div class="allergen-panel-toggle" onclick="document.getElementById('allergenPanel').classList.toggle('open')">
+                    <span>🚨 알레르기 정보</span>
+                    <span class="allergen-panel-arrow">▼</span>
+                </div>
+                <div class="allergen-panel-items">
+                    <span class="allergen-panel-item"><strong>1</strong>난류</span>
+                    <span class="allergen-panel-item"><strong>2</strong>우유</span>
+                    <span class="allergen-panel-item"><strong>3</strong>메밀</span>
+                    <span class="allergen-panel-item"><strong>4</strong>땅콩</span>
+                    <span class="allergen-panel-item"><strong>5</strong>대두</span>
+                    <span class="allergen-panel-item"><strong>6</strong>밀</span>
+                    <span class="allergen-panel-item"><strong>7</strong>고등어</span>
+                    <span class="allergen-panel-item"><strong>8</strong>게</span>
+                    <span class="allergen-panel-item"><strong>9</strong>새우</span>
+                    <span class="allergen-panel-item"><strong>10</strong>돼지고기</span>
+                    <span class="allergen-panel-item"><strong>11</strong>복숭아</span>
+                    <span class="allergen-panel-item"><strong>12</strong>토마토</span>
+                    <span class="allergen-panel-item"><strong>13</strong>아황산류</span>
+                    <span class="allergen-panel-item"><strong>14</strong>호두</span>
+                    <span class="allergen-panel-item"><strong>15</strong>닭고기</span>
+                    <span class="allergen-panel-item"><strong>16</strong>쇠고기</span>
+                    <span class="allergen-panel-item"><strong>17</strong>오징어</span>
+                    <span class="allergen-panel-item"><strong>18</strong>조개류</span>
+                    <span class="allergen-panel-item"><strong>19</strong>잣</span>
+                </div>
+            </div>
             <div class="lunch-page-card" id="lunchPageCard">
                 <div class="lunch-loading">
                     <span class="lunch-spinner"></span>
@@ -218,7 +262,7 @@ async function loadLunchPage() {
     const menuRows = Array.from({ length: maxItems }).map((_, idx) => {
         const cells = weeklyData.map(day => {
             const item = day.items[idx] || '';
-            return `<td class="lunch-table-item-cell">${item ? escapeHtml(item) : '<span style="color:var(--text-muted)">-</span>'}</td>`;
+            return `<td class="lunch-table-item-cell">${item ? cleanMenuItem(item) : '<span style="color:var(--text-muted)">-</span>'}</td>`;
         }).join('');
         return `<tr><td class="lunch-table-num">${idx + 1}</td>${cells}</tr>`;
     }).join('');
