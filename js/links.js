@@ -13,7 +13,10 @@ function renderLinks() {
                 <span style="display:inline-block;margin-top:10px;font-size:0.75rem;font-weight:700;color:${link.color};letter-spacing:0.04em">바로가기 →</span>
             </div>`;
 
-        if (link.page) {
+        if (link.audio) {
+            // 오디오 플레이어 모달
+            return `<div class="link-card-v" style="cursor:pointer" onclick="openSchoolSongModal('${link.audio}','${link.title}')">${cardBody}</div>`;
+        } else if (link.page) {
             // 내부 링크 (채팅 등)
             const onclick = !isLoggedIn() ? `navigate('login')` : `navigate('${link.page}')`;
             return `<div class="link-card-v" style="cursor:pointer" onclick="${onclick}">${cardBody}</div>`;
@@ -32,3 +35,42 @@ function renderLinks() {
         <div class="links-grid-v">${cards}</div>
     </div>`;
 }
+
+function openSchoolSongModal(src, title) {
+    // 기존에 재생 중인 오디오 정리
+    if (window._schoolSongAudio) {
+        window._schoolSongAudio.pause();
+        window._schoolSongAudio = null;
+    }
+    const audio = new Audio(src);
+    window._schoolSongAudio = audio;
+
+    const bodyHtml = `
+        <div style="text-align:center;padding:8px 0 16px">
+            <div style="font-size:3rem;margin-bottom:8px">🎵</div>
+            <p style="font-size:0.95rem;color:var(--text-muted);margin-bottom:20px">은가람중학교 교가</p>
+            <audio id="schoolSongPlayer" controls style="width:100%;border-radius:8px">
+                <source src="${src}" type="audio/mpeg">
+                오디오를 재생할 수 없습니다.
+            </audio>
+        </div>`;
+
+    openModal(title, bodyHtml);
+    // 모달 열린 후 자동 재생
+    requestAnimationFrame(() => {
+        const player = document.getElementById('schoolSongPlayer');
+        if (player) player.play().catch(() => {});
+    });
+}
+
+// 모달 닫힐 때 오디오 정지
+const _origCloseModal = closeModal;
+closeModal = function() {
+    if (window._schoolSongAudio) {
+        window._schoolSongAudio.pause();
+        window._schoolSongAudio = null;
+    }
+    const player = document.getElementById('schoolSongPlayer');
+    if (player) player.pause();
+    _origCloseModal();
+};
