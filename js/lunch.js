@@ -15,7 +15,7 @@ function cleanMenuItem(text) {
     const name = text.replace(/\([\d.]+\)/g, '').replace(/\([가-힣]+\)/g, '').trim();
     if (!name) return '';
     const allergenHtml = allergenNums.length
-        ? `<span class="allergen-list" title="${allergenNums.map(n => `${n}.${ALLERGEN_MAP[n]}`).join(', ')}">${allergenNums.join('·')}</span>`
+        ? `<br><span class="allergen-list" title="${allergenNums.map(n => `${n}.${ALLERGEN_MAP[n]}`).join(', ')}">${allergenNums.join('·')}</span>`
         : '';
     return `${name}${allergenHtml}`;
 }
