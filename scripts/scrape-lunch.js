@@ -28,7 +28,6 @@ function extractMenuFromTd(td) {
         .map(line => {
             line = line.trim();
             if (line.includes('상세보기')) return null;
-            line = line.replace(/\([\d.]+\)/g, '');
             line = line.replace(/\([가-힣]{1,3}\)/g, '');
             line = line.replace(/[\d.]+\s*Kcal/gi, '');
             line = line.replace(/\d{4}-\d{2}-\d{2}/g, '');
