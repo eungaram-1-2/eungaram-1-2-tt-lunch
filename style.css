@@ -177,6 +177,7 @@ button { font-family: inherit; }
 }
 
 .nav-menu a {
+    position: relative;
     padding: 6px 12px;
     border-radius: var(--radius-full);
     font-size: 0.8rem;
@@ -207,19 +208,21 @@ button { font-family: inherit; }
 
 /* 공지사항 뱃지 */
 .notice-badge {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 20px;
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 20px;
     height: 20px;
-    margin-left: 6px;
-    padding: 0 5px;
     background: #ef4444;
     color: white;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 800;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 900;
     line-height: 1;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 .user-info span { font-size: 0.84rem; font-weight: 600; color: var(--text-secondary); }
 

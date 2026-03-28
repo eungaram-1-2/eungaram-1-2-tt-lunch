@@ -4,3 +4,4 @@
 .hero{background:linear-gradient(135deg,#0f0a2e 0%,#1e1065 30%,#1d4ed8 65%,#0891b2 100%)}[data-theme="dark"] .hero{background:linear-gradient(135deg,#000308 0%,#0d0a1f 30%,#0d1b3f 65%,#054b5c 100%)}.hero-canvas,.hero-grid,.hero-blob{display:none}
 .feature-mosaic{grid-template-columns:repeat(4,1fr)}@media (max-width:900px){.feature-mosaic{grid-template-columns:repeat(2,1fr)}}@media (max-width:480px){.feature-mosaic{grid-template-columns:1fr}}
 .academic-calendar-container{padding:88px 20px 60px}@media (max-width:768px){.academic-calendar-container{padding:74px 14px 44px}}@media (max-width:480px){.academic-calendar-container{padding:70px 10px 32px}}
+.nav-menu a{position:relative}.notice-badge{display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;right:-6px;width:20px;height:20px;background:#ef4444;color:#fff;border-radius:50%;font-size:.65rem;font-weight:900;line-height:1;box-shadow:0 2px 8px rgba(239,68,68,.4)}
