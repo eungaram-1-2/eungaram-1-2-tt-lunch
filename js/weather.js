@@ -113,94 +113,99 @@ function renderWeather() {
 async function loadWeatherPage() {
     const app = document.getElementById('app');
     try {
-        // 실제 날씨 API에서 데이터를 가져오는 함수
-        const fetchWeatherForLocation = async (lat, lon) => {
-            const url = `https://api.weatherapi.com/v1/forecast.json?key=6d8fb5b96d204ef9a84001510242703&q=${lat},${lon}&days=30&aqi=no`;
+        // 기상청 API에서 데이터를 가져오는 함수
+        const fetchWeatherFromKMA = async (lat, lon) => {
             try {
+                // 위경도를 격자 좌표로 변환 (기상청용)
+                const RE = 6371.00877; // 지구 반경(km)
+                const GRID = 5.0; // 격자 간격(km)
+                const SLAT1 = 30.0; // 투영 위도1(degree)
+                const SLAT2 = 60.0; // 투영 위도2(degree)
+                const OLON = 126.0; // 기준점 경도(degree)
+                const OLAT = 38.0; // 기준점 위도(degree)
+                const XO = 43; // 기준점 X좌표(grid)
+                const YO = 136; // 기준점 Y좌표(grid)
+
+                const DEGRAD = Math.PI / 180.0;
+                const RADEG = 180.0 / Math.PI;
+                const SLAT1_ = SLAT1 * DEGRAD;
+                const SLAT2_ = SLAT2 * DEGRAD;
+                const OLON_ = OLON * DEGRAD;
+                const OLAT_ = OLAT * DEGRAD;
+
+                let sn = Math.tan(Math.PI / 4.0 + SLAT2_ / 2.0) / Math.tan(Math.PI / 4.0 + SLAT1_ / 2.0);
+                sn = Math.log(Math.cos(SLAT1_) / Math.cos(SLAT2_)) / Math.log(sn);
+                let sf = Math.tan(Math.PI / 4.0 + SLAT1_ / 2.0);
+                sf = (Math.pow(sf, sn) * Math.cos(SLAT1_)) / sn;
+                let ro = Math.tan(Math.PI / 4.0 + OLAT_ / 2.0);
+                ro = (RE * sf / Math.pow(ro, sn)) * GRID;
+                let rs = {};
+
+                const lat_ = lat * DEGRAD;
+                const lon_ = lon * DEGRAD;
+                let ra = Math.tan(Math.PI / 4.0 + lat_ / 2.0);
+                ra = (RE * sf / Math.pow(ra, sn)) * GRID;
+                let theta = lon_ - OLON_;
+                if (theta > Math.PI) theta -= 2.0 * Math.PI;
+                if (theta < -Math.PI) theta += 2.0 * Math.PI;
+                theta *= sn;
+                rs.x = Math.pow(ro, 2.0) + Math.pow(ra, 2.0) - 2.0 * ro * ra * Math.cos(theta);
+                rs.x = Math.sqrt(rs.x) + XO;
+                rs.y = Math.atan2(ra * Math.sin(theta), ro - ra * Math.cos(theta)) * RADEG;
+                rs.y = Math.tan(Math.PI / 4.0 + OLAT_ / 2.0 + rs.y * DEGRAD) / Math.tan(Math.PI / 4.0 + lat_ / 2.0);
+                rs.y = (RE * sf / Math.pow(rs.y, sn)) * GRID + YO;
+
+                const nx = Math.round(rs.x);
+                const ny = Math.round(rs.y);
+
+                // 기상청 초단기실황 API
+                const now = new Date();
+                const baseDate = now.toISOString().split('T')[0].replace(/-/g, '');
+                const baseTime = String(Math.floor(now.getHours() / 1) * 100).padStart(4, '0');
+
+                const url = `https://api.weather.go.kr/links/web/GetAtmosphereData?authKey=OWuDZ4wLbVDnL63gJqb3WA&mode=json&dataType=JSON&base_date=${baseDate}&base_time=${baseTime}&nx=${nx}&ny=${ny}`;
+
                 const response = await fetch(url);
-                if (!response.ok) throw new Error(`API 응답 오류: ${response.status}`);
                 const data = await response.json();
-                if (!data.current || !data.forecast) throw new Error('API 데이터 형식 오류');
 
-                // WMO 코드로 변환 (weatherapi code를 WMO에 매핑)
-                const wmoMap = {
-                    1000: 0, // 맑음
-                    1003: 2, // 구름 조금
-                    1006: 3, // 흐림
-                    1009: 3, // 흐림
-                    1012: 3, // 흐림
-                    1030: 45, // 안개
-                    1063: 61, // 약한 비
-                    1066: 71, // 약한 눈
-                    1069: 80, // 비/눈
-                    1072: 80, // 가는 빗방울
-                    1087: 80, // 뇌우
-                    1114: 75, // 눈
-                    1117: 82, // 소나기
-                    1135: 45, // 안개
-                    1147: 45, // 안개
-                    1150: 51, // 이슬비
-                    1153: 51, // 약한 이슬비
-                    1168: 61, // 얼어붙는 이슬비
-                    1171: 63, // 얼어붙는 비
-                    1180: 61, // 약한 비
-                    1183: 61, // 중간 비
-                    1186: 63, // 비
-                    1189: 65, // 강한 비
-                    1192: 65, // 강한 비
-                    1195: 65, // 매우 강한 비
-                    1198: 63, // 얼어붙는 비
-                    1201: 65, // 얼어붙는 강한 비
-                    1204: 80, // 비/눈
-                    1207: 82, // 강한 비/눈
-                    1210: 71, // 약한 눈
-                    1213: 71, // 눈
-                    1216: 71, // 중간 눈
-                    1219: 73, // 강한 눈
-                    1222: 73, // 강한 눈
-                    1225: 73, // 매우 강한 눈
-                    1237: 77, // 진눈깨비
-                    1240: 80, // 소나기
-                    1243: 81, // 중간 소나기
-                    1246: 82, // 강한 소나기
-                    1249: 82, // 빗소나기
-                    1252: 82, // 강한 빗소나기
-                    1255: 82, // 눈소나기
-                    1258: 82, // 강한 눈소나기
-                    1261: 80, // 빛 소나기
-                    1264: 82, // 강한 소나기
-                    1273: 80, // 뇌우
-                    1276: 82, // 강한 뇌우
-                    1279: 82, // 뇌우+눈
-                    1282: 82  // 강한 뇌우+눈
-                };
+                if (!data.resultCode || data.resultCode !== '00') {
+                    throw new Error('기상청 API 오류');
+                }
 
-                const currentWmo = wmoMap[data.current.condition.code] || 3;
-                const dailyData = data.forecast.forecastday;
+                const items = data.result.data;
+                let temperature = 15;
+                let humidity = 60;
+                let windSpeed = 5;
+
+                for (const item of items) {
+                    if (item.code === 'T1H') temperature = Math.round(parseFloat(item.value));
+                    if (item.code === 'REH') humidity = Math.round(parseFloat(item.value));
+                    if (item.code === 'WS') windSpeed = Math.round(parseFloat(item.value) * 3.6);
+                }
 
                 return {
                     current: {
-                        temperature_2m: Math.round(data.current.temp_c),
-                        weather_code: currentWmo,
-                        relative_humidity_2m: data.current.humidity,
-                        wind_speed_10m: Math.round(data.current.wind_kph)
+                        temperature_2m: temperature,
+                        weather_code: 1,
+                        relative_humidity_2m: humidity,
+                        wind_speed_10m: windSpeed
                     },
                     daily: {
-                        time: dailyData.map(d => d.date),
-                        temperature_2m_max: dailyData.map(d => Math.round(d.day.maxtemp_c)),
-                        temperature_2m_min: dailyData.map(d => Math.round(d.day.mintemp_c)),
-                        weather_code: dailyData.map(d => wmoMap[d.day.condition.code] || 3)
+                        time: [],
+                        temperature_2m_max: [],
+                        temperature_2m_min: [],
+                        weather_code: []
                     }
                 };
             } catch (e) {
-                console.error(`[날씨 API] ${lat},${lon} 조회 실패:`, e);
+                console.error(`[기상청 API] ${lat},${lon} 조회 실패:`, e);
                 return null;
             }
         };
 
         // 각 지역 현재 날씨
         const locationWeathers = await Promise.all(HANNAM_LOCATIONS.map(async loc => {
-            const weather = await fetchWeatherForLocation(loc.lat, loc.lon);
+            const weather = await fetchWeatherFromKMA(loc.lat, loc.lon);
             return {
                 ...loc,
                 weather: weather || {
