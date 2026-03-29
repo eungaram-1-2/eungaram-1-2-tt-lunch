@@ -113,71 +113,54 @@ function renderWeather() {
 async function loadWeatherPage() {
     const app = document.getElementById('app');
     try {
-        // 기상청 데이터 가져오기 (프록시 사용)
+        // 기상청 단기예보 API
         const fetchWeatherFromKMA = async (lat, lon) => {
             try {
-                // 하남시 중심 좌표 사용 (초단기실황)
-                const url = `https://cors-anywhere.herokuapp.com/https://www.weather.go.kr/w/obs-real-time.do?stnId=11113`;
+                // 하남시 사람인 광화문역 기준 (하남시 중심과 유사)
+                // 기상청 API: 초단기실황 조회
+                const now = new Date();
+                const baseDate = now.toISOString().split('T')[0].replace(/-/g, '');
+                const baseHour = String(Math.floor(now.getHours() / 1) * 100).padStart(4, '0');
 
-                const response = await fetch(url, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                // 하남 (37.5°N, 127.1°E) → 격자 좌표 (60, 127)
+                const url = `https://api.weather.go.kr/links/web/GetUltraSrtNcst?serviceKey=OWuDZ4wLbVDnL63gJqb3WA&base_date=${baseDate}&base_time=${baseHour}&nx=60&ny=127&dataType=json`;
+
+                const response = await fetch(url);
+                const data = await response.json();
+
+                console.log('[기상청 API 응답]', data);
+
+                if (data.response && data.response.body && data.response.body.items && data.response.body.items.item) {
+                    const items = data.response.body.items.item;
+                    let temperature = 15;
+                    let humidity = 60;
+                    let windSpeed = 5;
+
+                    for (const item of items) {
+                        if (item.category === 'T1H') temperature = Math.round(parseFloat(item.obsrValue));
+                        if (item.category === 'REH') humidity = Math.round(parseFloat(item.obsrValue));
+                        if (item.category === 'WS') windSpeed = Math.round(parseFloat(item.obsrValue) * 3.6);
                     }
-                });
 
-                // 실패 시 직접 기상청 공식 API 사용
-                if (!response.ok) {
-                    // 기상청 단기예보 API (공개)
-                    const kmaUrl = `https://api.weather.go.kr/links/web/GetForecasting?authKey=OWuDZ4wLbVDnL63gJqb3WA&stnId=11100&dataType=json`;
-                    const kmaResponse = await fetch(kmaUrl);
-                    const kmaData = await kmaResponse.json();
-
-                    if (kmaData.code === '0000' && kmaData.result) {
-                        const temp = parseInt(kmaData.result.temperature) || 15;
-                        return {
-                            current: {
-                                temperature_2m: temp,
-                                weather_code: 1,
-                                relative_humidity_2m: parseInt(kmaData.result.humidity) || 60,
-                                wind_speed_10m: parseInt(kmaData.result.wind_speed) || 5
-                            },
-                            daily: {
-                                time: [],
-                                temperature_2m_max: [],
-                                temperature_2m_min: [],
-                                weather_code: []
-                            }
-                        };
-                    }
+                    return {
+                        current: {
+                            temperature_2m: temperature,
+                            weather_code: 1,
+                            relative_humidity_2m: humidity,
+                            wind_speed_10m: windSpeed
+                        },
+                        daily: {
+                            time: [],
+                            temperature_2m_max: [],
+                            temperature_2m_min: [],
+                            weather_code: []
+                        }
+                    };
+                } else {
+                    throw new Error('API 응답 형식 오류');
                 }
-
-                const html = await response.text();
-
-                // HTML에서 온도 추출
-                const tempMatch = html.match(/현재\s*온도[^\d]*?(-?\d+\.?\d*)/);
-                const humiMatch = html.match(/습도[^\d]*?(\d+)/);
-                const windMatch = html.match(/풍속[^\d]*?(\d+\.?\d*)/);
-
-                const temperature = tempMatch ? Math.round(parseFloat(tempMatch[1])) : 15;
-                const humidity = humiMatch ? parseInt(humiMatch[1]) : 60;
-                const windSpeed = windMatch ? Math.round(parseFloat(windMatch[1])) : 5;
-
-                return {
-                    current: {
-                        temperature_2m: temperature,
-                        weather_code: 1,
-                        relative_humidity_2m: humidity,
-                        wind_speed_10m: windSpeed
-                    },
-                    daily: {
-                        time: [],
-                        temperature_2m_max: [],
-                        temperature_2m_min: [],
-                        weather_code: []
-                    }
-                };
             } catch (e) {
-                console.error(`[기상청 데이터] 조회 실패:`, e);
+                console.error(`[기상청 초단기실황] 조회 실패:`, e);
                 return null;
             }
         };
