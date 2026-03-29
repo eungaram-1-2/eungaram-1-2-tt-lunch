@@ -368,6 +368,9 @@ function mapToggleDirectionsPanel() {
 
 // ── OSRM 길찾기 ─────────────────────────────────────────────────────────
 async function mapGetDirections() {
+    // 이전 경로를 먼저 제거
+    mapClearRoute();
+
     const startInput = document.getElementById('mapDirStart');
     const endInput   = document.getElementById('mapDirEnd');
 
@@ -400,8 +403,6 @@ async function mapGetDirections() {
         if (!endCoords) { alert(`도착지 "${endVal}"를 찾을 수 없습니다.`); return; }
         endLat = endCoords.lat; endLon = endCoords.lon;
     }
-
-    mapClearRoute();
 
     const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=geojson`;
 
