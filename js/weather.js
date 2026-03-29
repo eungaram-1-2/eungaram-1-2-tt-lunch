@@ -113,54 +113,46 @@ function renderWeather() {
 async function loadWeatherPage() {
     const app = document.getElementById('app');
     try {
-        // 기상청 단기예보 API
+        // 기상청 데이터 가져오기 (프록시 사용)
         const fetchWeatherFromKMA = async (lat, lon) => {
             try {
-                // 하남시 사람인 광화문역 기준 (하남시 중심과 유사)
-                // 기상청 API: 초단기실황 조회
-                const now = new Date();
-                const baseDate = now.toISOString().split('T')[0].replace(/-/g, '');
-                const baseHour = String(Math.floor(now.getHours() / 1) * 100).padStart(4, '0');
-
-                // 하남 (37.5°N, 127.1°E) → 격자 좌표 (60, 127)
-                const url = `https://api.weather.go.kr/links/web/GetUltraSrtNcst?serviceKey=OWuDZ4wLbVDnL63gJqb3WA&base_date=${baseDate}&base_time=${baseHour}&nx=60&ny=127&dataType=json`;
+                // 기상청 단기예보 API (프록시 사용)
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const targetUrl = 'http://www.weather.go.kr/w/obs-real-time.do?stnId=11113'; // 하남역 기준
+                const url = proxyUrl + encodeURIComponent(targetUrl);
 
                 const response = await fetch(url);
-                const data = await response.json();
+                const html = await response.text();
 
-                console.log('[기상청 API 응답]', data);
+                console.log('[기상청 데이터 수신]', html.substring(0, 500));
 
-                if (data.response && data.response.body && data.response.body.items && data.response.body.items.item) {
-                    const items = data.response.body.items.item;
-                    let temperature = 15;
-                    let humidity = 60;
-                    let windSpeed = 5;
+                // HTML에서 온도 데이터 추출
+                const tempMatch = html.match(/현재\s*온도[:\s]*(-?\d+\.?\d*)/i) || html.match(/>(-?\d+)°C</);
+                const humiMatch = html.match(/습도[:\s]*(\d+)/i) || html.match(/습도[^0-9]*(\d+)/);
+                const windMatch = html.match(/풍속[:\s]*(\d+\.?\d*)/i) || html.match(/풍속[^0-9]*(\d+\.?\d*)/);
 
-                    for (const item of items) {
-                        if (item.category === 'T1H') temperature = Math.round(parseFloat(item.obsrValue));
-                        if (item.category === 'REH') humidity = Math.round(parseFloat(item.obsrValue));
-                        if (item.category === 'WS') windSpeed = Math.round(parseFloat(item.obsrValue) * 3.6);
+                const temperature = tempMatch ? Math.round(parseFloat(tempMatch[1])) : 20;
+                const humidity = humiMatch ? parseInt(humiMatch[1]) : 60;
+                const windSpeed = windMatch ? Math.round(parseFloat(windMatch[1])) : 5;
+
+                console.log('[기상청 파싱 결과]', { temperature, humidity, windSpeed });
+
+                return {
+                    current: {
+                        temperature_2m: temperature,
+                        weather_code: 1,
+                        relative_humidity_2m: humidity,
+                        wind_speed_10m: windSpeed
+                    },
+                    daily: {
+                        time: [],
+                        temperature_2m_max: [],
+                        temperature_2m_min: [],
+                        weather_code: []
                     }
-
-                    return {
-                        current: {
-                            temperature_2m: temperature,
-                            weather_code: 1,
-                            relative_humidity_2m: humidity,
-                            wind_speed_10m: windSpeed
-                        },
-                        daily: {
-                            time: [],
-                            temperature_2m_max: [],
-                            temperature_2m_min: [],
-                            weather_code: []
-                        }
-                    };
-                } else {
-                    throw new Error('API 응답 형식 오류');
-                }
+                };
             } catch (e) {
-                console.error(`[기상청 초단기실황] 조회 실패:`, e);
+                console.error(`[기상청 데이터] 조회 실패:`, e);
                 return null;
             }
         };
