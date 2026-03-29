@@ -121,9 +121,11 @@ async function loadWeatherPage() {
             const minTemps = [];
             const weatherCodes = [];
 
-            // 위도에 따른 기본 온도 (북쪽이 더 추움)
-            const latOffset = (37.5650 - lat) * 100; // 위도가 낮을수록(남쪽) 따뜻함
-            const baseTemp = 10 + latOffset * 0.8; // 약 0~4도 차이
+            // 위도에 따른 보정 (북쪽이 더 추움)
+            const latOffset = (37.5650 - lat) * 100;
+
+            // 월별 계절 기온 (하남시 기준 월 평균 최고기온 °C)
+            const monthBaseTemps = [3, 5, 11, 18, 23, 27, 30, 31, 26, 18, 10, 4];
 
             for (let i = 0; i < 30; i++) {
                 const d = new Date(now);
@@ -133,12 +135,14 @@ async function loadWeatherPage() {
                 const dd = String(d.getDate()).padStart(2, '0');
                 dates.push(`${yyyy}-${mm}-${dd}`);
 
-                // 날짜 기반 변동만 적용
+                // 계절 기반 기온 + 위도 보정 + 날짜 변동
+                const seasonalBase = monthBaseTemps[d.getMonth()];
+                const baseTemp = seasonalBase + latOffset * 0.8;
                 const dayHash = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate());
                 const variation = (dayHash % 10) - 5; // -5 ~ +4 변동
 
-                const maxTemp = Math.round(baseTemp + 5 + variation);
-                const minTemp = Math.round(baseTemp - 5 + variation);
+                const maxTemp = Math.round(baseTemp + variation);
+                const minTemp = Math.round(baseTemp - 8 + variation);
                 maxTemps.push(maxTemp);
                 minTemps.push(minTemp);
                 weatherCodes.push(dayHash % 4);
