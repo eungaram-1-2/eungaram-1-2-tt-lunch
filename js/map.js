@@ -3,8 +3,8 @@
 // =============================================
 
 // 은가람중학교 기본 좌표
-const SCHOOL_LAT = 37.5623;
-const SCHOOL_LON = 127.1895;
+const SCHOOL_LAT = 37.575669;
+const SCHOOL_LON = 127.1767861;
 
 // 모듈 레벨 상태 (페이지 이탈 시 정리용)
 let _mapInstance       = null;
