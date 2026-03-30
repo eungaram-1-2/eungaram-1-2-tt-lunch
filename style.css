@@ -4915,135 +4915,280 @@ button { font-family: inherit; }
 }
 
 /* =============================================
-   건의함/신고함 (Google Forms 스타일)
+   건의함/신고함
    ============================================= */
 .sg-form {
-    max-width: 640px;
+    max-width: 660px;
     margin: 0 auto;
-    padding: 20px;
+    padding: 24px 20px 48px;
 }
 
+/* 헤더 */
 .sg-header-card {
-    background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #06b6d4 100%);
     color: white;
-    padding: 40px 28px;
+    padding: 36px 32px;
     border-radius: var(--radius);
-    margin-bottom: 24px;
-    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+    box-shadow: 0 12px 40px rgba(79,70,229,0.35);
+    position: relative;
+    overflow: hidden;
 }
-
-.sg-header-card h2 {
+.sg-header-card::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 50%;
+}
+.sg-header-icon {
+    font-size: 2.4rem;
+    margin-bottom: 12px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+.sg-header-title {
+    font-size: 1.5rem;
+    font-weight: 800;
     color: white;
-    margin-bottom: 8px;
+    margin: 0 0 16px;
+    letter-spacing: -0.02em;
+}
+.sg-header-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+.sg-pill {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+.sg-pill-blue { background: rgba(255,255,255,0.2); color: white; }
+.sg-pill-red  { background: rgba(239,68,68,0.3);  color: #fecaca; }
+.sg-header-notice {
+    font-size: 0.83rem;
+    color: rgba(255,255,255,0.75);
+    margin: 0;
 }
 
-.sg-header-card p {
-    color: rgba(255,255,255,0.9);
+/* 진행 바 */
+.sg-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+.sg-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4f46e5, #06b6d4);
+    border-radius: 2px;
+    transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
 }
 
+/* 카드 */
 .sg-card {
     background: var(--bg-card);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 28px;
-    margin-bottom: 20px;
-    transition: box-shadow var(--transition);
+    padding: 24px 24px 20px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
 }
-
-.sg-card:hover {
-    box-shadow: var(--shadow-sm);
+.sg-card:focus-within {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.08);
+}
+.sg-card-active {
+    border-color: var(--primary-light);
+}
+.sg-card-num {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    opacity: 0.5;
 }
 
 .sg-label {
     display: block;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.97rem;
+    font-weight: 700;
     color: var(--text);
     margin-bottom: 16px;
+    letter-spacing: -0.01em;
 }
-
-.sg-required {
-    color: #ef4444;
-    font-weight: 700;
-}
-
+.sg-required { color: #ef4444; }
 .sg-helper {
     font-size: 0.8rem;
     color: var(--text-muted);
     margin-top: 8px;
 }
 
-.sg-input-wrap,
-.sg-textarea-wrap {
-    position: relative;
-    margin-bottom: 8px;
-}
+/* 입력 */
+.sg-input-wrap, .sg-textarea-wrap { margin-bottom: 4px; }
 
-.sg-input,
-.sg-textarea {
+.sg-input, .sg-textarea {
     width: 100%;
     border: none;
     border-bottom: 2px solid var(--border);
-    padding: 12px 0;
+    padding: 10px 0;
     font-family: inherit;
     font-size: 0.95rem;
     color: var(--text);
     background: transparent;
-    transition: border-color var(--transition);
+    transition: border-color 0.2s;
 }
-
-.sg-input:focus,
-.sg-textarea:focus {
+.sg-input:focus, .sg-textarea:focus {
     outline: none;
     border-bottom-color: var(--primary);
-    box-shadow: none;
 }
+.sg-textarea { resize: vertical; min-height: 120px; line-height: 1.7; }
 
-.sg-textarea {
-    resize: vertical;
-    padding: 12px 0;
-    min-height: 120px;
-}
+.sg-char-bar { display: flex; justify-content: flex-end; margin-top: 6px; }
+.sg-char-count { font-size: 0.78rem; color: var(--text-muted); }
 
-.sg-radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.sg-radio-option {
-    display: flex;
-    align-items: center;
-}
-
-.sg-radio-option label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    flex: 1;
+/* 건의/신고 선택 버튼 */
+.sg-type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
 }
-
-.sg-radio-option input[type="radio"] {
+.sg-type-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 20px 12px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-sm);
     cursor: pointer;
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
-    accent-color: var(--primary);
+    transition: all 0.2s;
+    background: var(--bg-subtle);
+    text-align: center;
+    user-select: none;
+}
+.sg-type-btn:hover {
+    border-color: var(--primary-light);
+    background: var(--primary-bg);
+}
+.sg-type-btn-active {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+    box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+.sg-type-icon { font-size: 1.8rem; }
+.sg-type-name { font-size: 1rem; font-weight: 700; color: var(--text); }
+.sg-type-desc { font-size: 0.75rem; color: var(--text-muted); }
+
+/* 섹션 애니메이션 */
+.sg-section-hidden { display: none; }
+.sg-section-visible {
+    display: block;
+    animation: sgFadeIn 0.3s ease;
+}
+@keyframes sgFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
 }
 
-.sg-radio-option span {
-    color: var(--text);
-    font-size: 0.95rem;
-}
-
-.sg-notice {
-    background: #fef3c7;
-    border-left: 4px solid #f59e0b;
-    padding: 16px;
+/* 라디오 커스텀 */
+.sg-radio-group { display: flex; flex-direction: column; gap: 10px; }
+.sg-radio-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-xs);
-    font-size: 0.9rem;
-    color: #78350f;
-    margin-top: 16px;
-    line-height: 1.6;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sg-radio-option:has(input:checked) {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+}
+.sg-radio-option input[type="radio"] { display: none; }
+.sg-radio-box {
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.15s;
+    position: relative;
+}
+.sg-radio-option:has(input:checked) .sg-radio-box {
+    border-color: var(--primary);
+    background: var(--primary);
+}
+.sg-radio-option:has(input:checked) .sg-radio-box::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+}
+.sg-radio-text { display: flex; flex-direction: column; gap: 2px; }
+.sg-radio-main { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+.sg-radio-sub  { font-size: 0.78rem; color: var(--text-muted); }
+
+/* 신고 안내 배너 */
+.sg-info-banner {
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+    border: 1px solid #bfdbfe;
+    border-radius: var(--radius-xs);
+    padding: 12px 16px;
+    font-size: 0.85rem;
+    color: #1e40af;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+[data-theme="dark"] .sg-info-banner {
+    background: rgba(59,130,246,0.12);
+    border-color: rgba(59,130,246,0.25);
+    color: #93c5fd;
+}
+
+/* 제출 버튼 */
+.sg-submit-btn {
+    width: 100%;
+    height: 52px;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(79,70,229,0.35);
+    font-family: inherit;
+    letter-spacing: -0.01em;
+}
+.sg-submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,70,229,0.4); }
+.sg-submit-btn:active { transform: translateY(0); }
+.sg-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+.sg-submit-done { background: linear-gradient(135deg, #10b981, #059669) !important; }
+
+@media (max-width: 480px) {
+    .sg-form { padding: 16px 14px 40px; }
+    .sg-header-card { padding: 28px 20px; }
+    .sg-type-selector { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .sg-type-btn { padding: 16px 8px; }
+    .sg-card { padding: 20px 16px 16px; }
 }

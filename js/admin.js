@@ -733,86 +733,91 @@ function updateEmergencyBanner() {
 // 건의함 모달
 // =============================================
 function showSuggestionsModal() {
-    if (!_canViewSuggestionData()) {
-        showToast('조회 권한이 없습니다.', 'error');
-        return;
-    }
+    if (!_canViewSuggestionData()) { showToast('조회 권한이 없습니다.', 'error'); return; }
 
     const suggestions = DB.get('suggestions', []);
-    let tableHtml = '';
 
-    if (suggestions.length === 0) {
-        tableHtml = `<div style="padding:40px;text-align:center;color:var(--text-muted)">건의함이 비어있습니다</div>`;
-    } else {
-        const rows = suggestions.map((item, idx) => {
-            const date = new Date(item.createdAt);
-            const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
-            const publicLabel = item.namePublic ? '공개' : '비공개';
+    const emptyHtml = `
+        <div style="padding:48px 24px;text-align:center">
+            <div style="font-size:3rem;margin-bottom:12px;opacity:0.4">💬</div>
+            <p style="color:var(--text-muted);font-size:0.9rem">아직 건의사항이 없습니다</p>
+        </div>`;
 
-            return `
-            <div style="border-bottom:1px solid var(--border);padding:16px 0">
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="font-weight:600">${escapeHtml(item.studentId)} - ${escapeHtml(item.name)}</span>
-                    <span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span>
+    const rows = suggestions.map((item, i) => {
+        const d = new Date(item.createdAt);
+        const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const publicBadge = item.namePublic
+            ? `<span style="background:#d1fae5;color:#065f46;font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px">이름 공개</span>`
+            : `<span style="background:#f3f4f6;color:#6b7280;font-size:0.75rem;font-weight:700;padding:2px 8px;border-radius:999px">익명</span>`;
+
+        return `
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="background:var(--primary-bg);color:var(--primary);font-size:0.85rem;font-weight:700;padding:3px 10px;border-radius:999px">${escapeHtml(item.studentId)}</span>
+                    <span style="font-weight:600;font-size:0.9rem">${escapeHtml(item.name)}</span>
+                    ${publicBadge}
                 </div>
-                <div style="background:var(--bg-subtle);padding:12px;border-radius:var(--radius-xs);margin-bottom:8px">
-                    <p style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:0.9rem">${escapeHtml(item.content)}</p>
-                </div>
-                <div style="font-size:0.85rem;color:var(--text-muted)">이름 공개 여부: <strong>${publicLabel}</strong></div>
-            </div>`;
-        }).join('');
+                <span style="font-size:0.8rem;color:var(--text-muted)">${dateStr}</span>
+            </div>
+            <div style="background:var(--bg-subtle);border-radius:10px;padding:14px;font-size:0.9rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text-secondary)">
+                ${escapeHtml(item.content)}
+            </div>
+        </div>`;
+    }).join('');
 
-        tableHtml = `<div style="padding:20px 0">${rows}</div>`;
-    }
-
-    const bodyHtml = `
-    <div style="max-height:600px;overflow-y:auto">
-        ${tableHtml}
-    </div>`;
-
-    openModal(`💬 건의함 (총 ${suggestions.length}건)`, bodyHtml);
+    openModal(`💬 건의함 · ${suggestions.length}건`, `
+    <div style="max-height:580px;overflow-y:auto;padding:4px 2px">
+        ${suggestions.length === 0 ? emptyHtml : rows}
+    </div>`);
 }
 
 // =============================================
 // 신고함 모달
 // =============================================
 function showReportsModal() {
-    if (!_canViewSuggestionData()) {
-        showToast('조회 권한이 없습니다.', 'error');
-        return;
-    }
+    if (!_canViewSuggestionData()) { showToast('조회 권한이 없습니다.', 'error'); return; }
 
-    const reports = DB.get('reports', []);
-    let tableHtml = '';
+    // 만료 신고 정리
+    const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
+    const raw = DB.get('reports', []);
+    const reports = raw.filter(r => (Date.now() - new Date(r.createdAt).getTime()) < ONE_MONTH);
+    if (reports.length !== raw.length) DB.set('reports', reports);
 
-    if (reports.length === 0) {
-        tableHtml = `<div style="padding:40px;text-align:center;color:var(--text-muted)">신고함이 비어있습니다</div>`;
-    } else {
-        const rows = reports.map((item, idx) => {
-            const date = new Date(item.createdAt);
-            const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+    const emptyHtml = `
+        <div style="padding:48px 24px;text-align:center">
+            <div style="font-size:3rem;margin-bottom:12px;opacity:0.4">🚨</div>
+            <p style="color:var(--text-muted);font-size:0.9rem">아직 신고 내용이 없습니다</p>
+        </div>`;
 
-            return `
-            <div style="border-bottom:1px solid var(--border);padding:16px 0">
-                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
-                    <span style="font-weight:600">신고자: ${escapeHtml(item.studentId)}</span>
-                    <span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span>
+    const rows = reports.map(item => {
+        const d = new Date(item.createdAt);
+        const dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const daysLeft = Math.ceil((30 - (Date.now() - d.getTime()) / 86400000));
+        const expireBadge = `<span style="background:#fef3c7;color:#92400e;font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:999px">${daysLeft}일 후 삭제</span>`;
+
+        return `
+        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px 20px;margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+                <div style="display:flex;align-items:center;gap:8px">
+                    <span style="background:#fee2e2;color:#dc2626;font-size:0.85rem;font-weight:700;padding:3px 10px;border-radius:999px">신고자 ${escapeHtml(item.studentId)}</span>
+                    ${expireBadge}
                 </div>
-                <div style="background:var(--primary-bg);padding:12px;border-radius:var(--radius-xs);margin-bottom:8px;border-left:4px solid var(--primary)">
-                    <div style="font-size:0.9rem;margin-bottom:8px"><strong>신고 대상:</strong> ${escapeHtml(item.targetName)}</div>
-                    <div style="font-size:0.9rem"><strong>신고 사유:</strong></div>
-                    <p style="margin:8px 0 0 0;white-space:pre-wrap;word-break:break-word;font-size:0.85rem">${escapeHtml(item.reason)}</p>
-                </div>
-            </div>`;
-        }).join('');
+                <span style="font-size:0.8rem;color:var(--text-muted)">${dateStr}</span>
+            </div>
+            <div style="background:#fff1f2;border:1px solid #fecdd3;border-radius:10px;padding:14px;margin-bottom:10px">
+                <div style="font-size:0.78rem;font-weight:700;color:#be123c;letter-spacing:0.04em;margin-bottom:6px">신고 대상</div>
+                <div style="font-size:1rem;font-weight:700;color:#991b1b">${escapeHtml(item.targetName)}</div>
+            </div>
+            <div style="background:var(--bg-subtle);border-radius:10px;padding:14px">
+                <div style="font-size:0.78rem;font-weight:700;color:var(--text-muted);letter-spacing:0.04em;margin-bottom:6px">신고 사유</div>
+                <div style="font-size:0.9rem;line-height:1.7;white-space:pre-wrap;word-break:break-word;color:var(--text-secondary)">${escapeHtml(item.reason)}</div>
+            </div>
+        </div>`;
+    }).join('');
 
-        tableHtml = `<div style="padding:20px 0">${rows}</div>`;
-    }
-
-    const bodyHtml = `
-    <div style="max-height:600px;overflow-y:auto">
-        ${tableHtml}
-    </div>`;
-
-    openModal(`🚨 신고함 (총 ${reports.length}건)`, bodyHtml);
+    openModal(`🚨 신고함 · ${reports.length}건`, `
+    <div style="max-height:580px;overflow-y:auto;padding:4px 2px">
+        ${reports.length === 0 ? emptyHtml : rows}
+    </div>`);
 }
