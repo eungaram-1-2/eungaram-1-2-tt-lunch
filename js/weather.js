@@ -1,8 +1,9 @@
 // =============================================
-// 날씨 페이지 — 하남시 (wttr.in API - 기상청 기반)
+// 날씨 페이지 — 하남시 (네이버 날씨)
 // =============================================
 
 const WEATHER_CITY = '하남시';
+const NAVER_REGION_CODE = '4100000000'; // 경기도 하남시
 
 function getOutfitAdvice(tempC) {
     const clothes = [];
@@ -24,17 +25,16 @@ function getOutfitAdvice(tempC) {
     return clothes;
 }
 
-function getTodayItems(desc) {
+function getTodayItems(skyStatus, ptyStatus) {
     const items = [];
-    const descLower = (desc || '').toLowerCase();
 
-    if (descLower.includes('rain') || descLower.includes('drizzle') || descLower.includes('비')) {
+    // 강수: 1(비), 2(비/눈), 3(눈), 4(소나기)
+    if (['1', '2', '3', '4'].includes(ptyStatus)) {
         items.push('☂️ 우산');
-        items.push('🌧️ 우비');
     }
 
-    if (descLower.includes('snow') || descLower.includes('눈')) {
-        items.push('⛄ 방한용품');
+    if (['2', '3'].includes(ptyStatus)) {
+        items.push('🧣 방한용품');
     }
 
     if (items.length === 0) {
@@ -52,16 +52,26 @@ function getTempColor(temp) {
     return '#f97316';
 }
 
-function getWeatherIcon(desc) {
-    const d = (desc || '').toLowerCase();
-    if (d.includes('sunny') || d.includes('clear')) return '☀️';
-    if (d.includes('rain')) return '🌧️';
-    if (d.includes('cloud')) return '☁️';
-    if (d.includes('snow')) return '❄️';
-    if (d.includes('storm') || d.includes('thunder')) return '⛈️';
-    if (d.includes('fog') || d.includes('mist')) return '🌫️';
-    if (d.includes('partly')) return '⛅';
-    return '🌤️';
+function getSkyIcon(sky) {
+    // 하늘 상태: 1(맑음), 3(구름많음), 4(흐림)
+    const icons = {
+        '1': '☀️',
+        '3': '⛅',
+        '4': '☁️'
+    };
+    return icons[sky] || '🌤️';
+}
+
+function getPtyText(pty) {
+    // 강수 상태: 0(없음), 1(비), 2(비/눈), 3(눈), 4(소나기)
+    const texts = {
+        '0': '맑음',
+        '1': '비',
+        '2': '비/눈',
+        '3': '눈',
+        '4': '소나기'
+    };
+    return texts[pty] || '정보 없음';
 }
 
 function fmtDay(dateStr) {
@@ -78,30 +88,38 @@ function renderWeather() {
 async function loadWeatherPage() {
     const app = document.getElementById('app');
     try {
-        // wttr.in API 사용 (기상청 기반, CORS 지원)
-        const fetchWeatherFromAPI = async () => {
+        // 네이버 날씨 API (allorigins 프록시)
+        const fetchWeatherFromNaver = async () => {
             try {
-                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://wttr.in/Hanam?format=j1')}`;
+                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://weather.naver.com/api/json/summary?regionCode=${NAVER_REGION_CODE}`)}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
 
-                const current = data.current_condition[0];
-                const today = data.weather[0];
-                const forecasts = data.weather.slice(0, 7);
+                // 네이버 API 응답 구조
+                const current = data.weather?.current || {};
+                const today = data.weather?.today?.weather || {};
+                const forecast = data.weather?.forecast || [];
 
                 return {
                     current: {
-                        temp_c: Math.round(current.temp_C),
-                        description: current.weatherDesc[0]?.value || '정보 없음',
+                        temp_c: current.temp || 0,
+                        description: current.weatherType || '정보 없음',
                         humidity: current.humidity || 0,
-                        wind_speed: Math.round(current.windspeedKmph || 0)
+                        wind_speed: current.windSpeed || 0,
+                        sky: current.sky || '4',
+                        pty: current.pty || '0'
                     },
-                    forecasts: forecasts.map(day => ({
-                        date: day.date,
-                        maxtemp_c: Math.round(day.maxtempC),
-                        mintemp_c: Math.round(day.mintempC),
-                        description: day.hourly?.[0]?.weatherDesc?.[0]?.value || '정보 없음'
+                    today: {
+                        maxtemp_c: today.maxTemp || 0,
+                        mintemp_c: today.minTemp || 0,
+                        text: today.text || '정보 없음'
+                    },
+                    forecasts: forecast.slice(0, 7).map(day => ({
+                        date: day.date || '',
+                        maxtemp_c: day.maxTemp || 0,
+                        mintemp_c: day.minTemp || 0,
+                        text: day.text || '정보 없음'
                     }))
                 };
             } catch (e) {
@@ -110,7 +128,7 @@ async function loadWeatherPage() {
             }
         };
 
-        let mainWeather = await fetchWeatherFromAPI();
+        let mainWeather = await fetchWeatherFromNaver();
 
         // API 실패 시 폴백
         if (!mainWeather) {
@@ -119,12 +137,16 @@ async function loadWeatherPage() {
                     temp_c: 15,
                     description: '정보 없음',
                     humidity: 50,
-                    wind_speed: 5
+                    wind_speed: 5,
+                    sky: '4',
+                    pty: '0'
                 },
-                forecasts: [
-                    { date: new Date().toISOString().split('T')[0], maxtemp_c: 20, mintemp_c: 10, description: '정보 없음' },
-                    { date: new Date(Date.now() + 86400000).toISOString().split('T')[0], maxtemp_c: 18, mintemp_c: 12, description: '정보 없음' }
-                ]
+                today: {
+                    maxtemp_c: 20,
+                    mintemp_c: 10,
+                    text: '정보 없음'
+                },
+                forecasts: []
             };
         }
         console.log('[날씨] 하남시 데이터:', mainWeather);
@@ -134,55 +156,28 @@ async function loadWeatherPage() {
         const temp = c.temp_c;
         const humid = c.humidity;
         const wind = c.wind_speed;
-        const desc = c.description;
-        const icon = getWeatherIcon(desc);
+        const desc = getPtyText(c.pty);
+        const icon = getSkyIcon(c.sky);
         const tempCol = getTempColor(temp);
 
         // 옷차림 추천
         const clothesList = getOutfitAdvice(temp);
-        const todayItemsList = getTodayItems(desc);
+        const todayItemsList = getTodayItems(c.sky, c.pty);
 
         // 7일 예보
-        const forecastCards = mainWeather.forecasts.slice(0, 7).map((day, i) => {
+        const forecastCards = (mainWeather.forecasts || []).slice(0, 7).map((day, i) => {
             const isToday = i === 0;
-            const icon = getWeatherIcon(day.description);
             return `
             <div class="weather-day-card${isToday ? ' today' : ''}">
                 <div class="wdc-date">${isToday ? '오늘' : fmtDay(day.date)}</div>
-                <div class="wdc-icon">${icon}</div>
-                <div class="wdc-desc">${day.description}</div>
+                <div class="wdc-icon">🌤️</div>
+                <div class="wdc-desc">${day.text || '정보 없음'}</div>
                 <div class="wdc-temp">
                     <span class="wdc-max" style="color:#f97316">${day.maxtemp_c}°</span>
                     <span class="wdc-min" style="color:#60a5fa">${day.mintemp_c}°</span>
                 </div>
             </div>`;
         }).join('');
-
-        // 1주일 이후 테이블
-        const monthTable = (() => {
-            let html = '<table class="weather-month-table"><tbody>';
-            const forecasts = mainWeather.forecasts;
-
-            for (let i = 7; i < forecasts.length; i += 7) {
-                html += '<tr>';
-                for (let j = 0; j < 7 && i + j < forecasts.length; j++) {
-                    const idx = i + j;
-                    const day = forecasts[idx];
-                    const icon = getWeatherIcon(day.description);
-                    const date = new Date(day.date);
-                    const dayName = ['일','월','화','수','목','금','토'][date.getDay()];
-                    html += `
-                    <td>
-                        <div class="wmt-date">${date.getDate()}(${dayName})</div>
-                        <div class="wmt-icon">${icon}</div>
-                        <div class="wmt-temp"><span class="wmt-max">${day.maxtemp_c}°</span><span class="wmt-min">${day.mintemp_c}°</span></div>
-                    </td>`;
-                }
-                html += '</tr>';
-            }
-            html += '</tbody></table>';
-            return html;
-        })();
 
         const clothesHtml = clothesList.map(c => `<span class="advice-chip advice-clothes">${c}</span>`).join('');
         const itemsHtml = todayItemsList.map(i => `<span class="advice-chip advice-item">${i}</span>`).join('');
@@ -198,7 +193,7 @@ async function loadWeatherPage() {
             </div>
 
             <p style="text-align:center;font-size:0.75rem;color:#6366f1;margin-bottom:16px;font-weight:600;padding:8px;background:rgba(99,102,241,0.1);border-radius:8px">
-                ℹ️ 기상청 기반 날씨 정보입니다.
+                ℹ️ 네이버 날씨 데이터입니다.
             </p>
 
             <div class="weather-current-card" data-weather-current>
@@ -222,20 +217,15 @@ async function loadWeatherPage() {
                 <div class="advice-row">${itemsHtml}</div>
             </div>
 
+            ${forecastCards ? `
             <div class="section-card" style="margin-top:20px">
                 <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px">📅 7일 예보</h3>
                 <div class="weather-forecast-row">${forecastCards}</div>
             </div>
-
-            ${mainWeather.forecasts.length > 7 ? `
-            <div class="section-card" style="margin-top:20px">
-                <h3 style="font-size:1rem;font-weight:800;margin-bottom:16px">📆 향후 날씨</h3>
-                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch">${monthTable}</div>
-            </div>
             ` : ''}
 
             <p style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-top:20px">
-                매 시간 자동 갱신됩니다.
+                자동 갱신됩니다.
             </p>
         </div>`;
 
@@ -253,30 +243,32 @@ async function loadWeatherPage() {
         </div>`;
     }
 
-    // 1시간마다 날씨 데이터 갱신
+    // 30분마다 날씨 데이터 갱신
     if (window._weatherUpdateInterval) clearInterval(window._weatherUpdateInterval);
     window._weatherUpdateInterval = setInterval(() => {
-        console.log('[날씨] 1시간마다 자동 갱신 중...');
+        console.log('[날씨] 30분마다 자동 갱신 중...');
         updateWeatherDisplay();
-    }, 60 * 60 * 1000); // 1시간
+    }, 30 * 60 * 1000); // 30분
 }
 
 // 날씨 디스플레이 업데이트 (현재 온도)
 async function updateWeatherDisplay() {
     try {
-        const fetchWeatherFromAPI = async () => {
+        const fetchWeatherFromNaver = async () => {
             try {
-                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://wttr.in/Hanam?format=j1')}`;
+                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://weather.naver.com/api/json/summary?regionCode=${NAVER_REGION_CODE}`)}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
 
-                const current = data.current_condition[0];
+                const current = data.weather?.current || {};
                 return {
-                    temp_c: Math.round(current.temp_C),
-                    description: current.weatherDesc[0]?.value || '정보 없음',
+                    temp_c: current.temp || 0,
+                    description: current.weatherType || '정보 없음',
                     humidity: current.humidity || 0,
-                    wind_speed: Math.round(current.windspeedKmph || 0)
+                    wind_speed: current.windSpeed || 0,
+                    sky: current.sky || '4',
+                    pty: current.pty || '0'
                 };
             } catch (e) {
                 console.error(`[날씨 조회 실패]`, e);
@@ -284,13 +276,15 @@ async function updateWeatherDisplay() {
             }
         };
 
-        let currentWeather = await fetchWeatherFromAPI();
+        let currentWeather = await fetchWeatherFromNaver();
         if (!currentWeather) {
             currentWeather = {
                 temp_c: 15,
                 description: '정보 없음',
                 humidity: 50,
-                wind_speed: 5
+                wind_speed: 5,
+                sky: '4',
+                pty: '0'
             };
         }
 
@@ -298,8 +292,8 @@ async function updateWeatherDisplay() {
         const temp = currentWeather.temp_c;
         const humid = currentWeather.humidity;
         const wind = currentWeather.wind_speed;
-        const desc = currentWeather.description;
-        const icon = getWeatherIcon(desc);
+        const desc = getPtyText(currentWeather.pty);
+        const icon = getSkyIcon(currentWeather.sky);
         const tempCol = getTempColor(temp);
 
         const weatherCurrentCard = document.querySelector('[data-weather-current]');
