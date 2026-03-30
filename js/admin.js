@@ -414,6 +414,7 @@ function renderAdmin() {
             </div>
         </div>
 
+        ${_canViewPasswords() ? `
         <!-- 비밀번호 조회 -->
         <div class="adm-panel" id="pwViewPanel">
             <div class="adm-panel-header">
@@ -424,10 +425,11 @@ function renderAdmin() {
                     <input type="password" id="pwViewMaster" class="form-input" placeholder="마스터 비밀번호 입력" maxlength="50"
                         style="max-width:260px" onkeydown="if(event.key==='Enter')unlockPwView()">
                     <button class="btn btn-primary" onclick="unlockPwView()">🔓 확인</button>
-                    <span style="font-size:0.8rem;color:var(--text-muted)">모든 계정의 비밀번호를 조회합니다</span>
+                    <span style="font-size:0.8rem;color:var(--text-muted)">계정의 비밀번호를 조회합니다</span>
                 </div>
             </div>
         </div>
+        ` : ''}`
     </div>`;
 }
 
@@ -495,8 +497,26 @@ function renderAdmin() {
 // ── 비밀번호 조회 ──────────────────────────────
 const PW_VIEW_MASTER = '1234';
 
+function _canViewPasswords() {
+    const user = currentUser();
+    if (!user) return false;
+    // 담임선생님, 2번, 6번, 29번만 비밀번호 조회 가능
+    return ['teacher', '10202', '10206', '10229'].includes(user.id);
+}
+
+function _canViewAdminPasswords() {
+    const user = currentUser();
+    if (!user) return false;
+    // 담임선생님, 2번만 관리자 비밀번호 조회 가능
+    return ['teacher', '10202'].includes(user.id);
+}
+
 function unlockPwView() {
-    if (!isAdmin()) return;
+    if (!isAdmin() || !_canViewPasswords()) {
+        showToast('조회 권한이 없습니다.', 'error');
+        return;
+    }
+
     const input = document.getElementById('pwViewMaster');
     if (!input) return;
     if (input.value !== PW_VIEW_MASTER) {
@@ -514,6 +534,19 @@ function unlockPwView() {
     });
 
     const rows = allAccounts.map(a => {
+        // 관리자 비밀번호는 teacher, 10202만 볼 수 있음
+        if (a.role === 'admin' && !_canViewAdminPasswords()) {
+            const roleBadge = `<span class="adm-badge adm-badge-active" style="background:rgba(139,92,246,0.12);color:#7c3aed">관리자</span>`;
+            return `
+            <tr>
+                <td><span class="adm-username">${escapeHtml(a.username)}</span></td>
+                <td>${escapeHtml(a.nickname)}</td>
+                <td>${roleBadge}</td>
+                <td><span style="font-size:0.75rem;color:var(--danger)">조회 권한 없음</span></td>
+                <td>—</td>
+            </tr>`;
+        }
+
         const basePw    = String(a.password);
         const overridePw = pwOverrides[a.id];
         const isChanged  = overridePw !== undefined;
