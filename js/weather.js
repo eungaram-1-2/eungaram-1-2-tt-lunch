@@ -81,7 +81,7 @@ async function loadWeatherPage() {
         // wttr.in API 사용 (기상청 기반, CORS 지원)
         const fetchWeatherFromAPI = async () => {
             try {
-                const url = `https://wttr.in/Hanam?format=j1`;
+                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://wttr.in/Hanam?format=j1')}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
@@ -266,7 +266,7 @@ async function updateWeatherDisplay() {
     try {
         const fetchWeatherFromAPI = async () => {
             try {
-                const url = `https://wttr.in/Hanam?format=j1`;
+                const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://wttr.in/Hanam?format=j1')}`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
