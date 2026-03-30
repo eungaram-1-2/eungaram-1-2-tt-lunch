@@ -279,13 +279,9 @@ function renderAdmin() {
         _adminUnlisten = sessionListenAll(() => {
             const tbody = document.getElementById('adminTbody');
             const mtbody = document.getElementById('adminMemberTbody');
-            const stbody = document.getElementById('suggestionTbody');
-            const rtbody = document.getElementById('reportTbody');
-            if (!tbody && !mtbody && !stbody && !rtbody) { if (_adminUnlisten) { _adminUnlisten(); _adminUnlisten = null; } return; }
+            if (!tbody && !mtbody) { if (_adminUnlisten) { _adminUnlisten(); _adminUnlisten = null; } return; }
             if (tbody) tbody.innerHTML = _buildAdminRows();
             if (mtbody) mtbody.innerHTML = _buildAdminMemberRows();
-            if (stbody) stbody.innerHTML = _buildSuggestionRows();
-            if (rtbody) rtbody.innerHTML = _buildReportRows();
             _updateAdminStats();
         });
 
@@ -315,6 +311,8 @@ function renderAdmin() {
                 </div>
             </div>
             <div class="adm-hero-actions">
+                ${_canViewSuggestionData() ? `<button class="btn btn-outline btn-sm" onclick="showSuggestionsModal()">💬 건의함 (${DB.get('suggestions', []).length})</button>` : ''}
+                ${_canViewSuggestionData() ? `<button class="btn btn-outline btn-sm" onclick="showReportsModal()">🚨 신고함 (${DB.get('reports', []).length})</button>` : ''}
                 <button class="btn btn-outline btn-sm" onclick="navigate('logs')">📋 활동 로그</button>
                 <button class="btn btn-outline btn-sm" onclick="navigate('boardlog')">📋 게시판 로그</button>
                 <button class="btn btn-outline btn-sm" onclick="exportData()">📥 데이터 다운로드</button>
@@ -415,52 +413,6 @@ function renderAdmin() {
                 </table>
             </div>
         </div>
-
-        ${_canViewSuggestionData() ? `
-        <!-- 건의함 -->
-        <div class="adm-panel">
-            <div class="adm-panel-header">
-                <span class="adm-panel-title">💬 건의함</span>
-                <span class="adm-panel-meta" id="suggestionCount">${DB.get('suggestions', []).length}건</span>
-            </div>
-            <div class="adm-table-wrap">
-                <table class="adm-table">
-                    <thead>
-                        <tr>
-                            <th>학번</th>
-                            <th>내용</th>
-                            <th>공개여부</th>
-                            <th>작성 시각</th>
-                        </tr>
-                    </thead>
-                    <tbody id="suggestionTbody">${_buildSuggestionRows()}</tbody>
-                </table>
-            </div>
-        </div>
-        ` : ''}
-
-        ${_canViewSuggestionData() ? `
-        <!-- 신고함 (10202번, 담임선생님만 조회 가능) -->
-        <div class="adm-panel">
-            <div class="adm-panel-header">
-                <span class="adm-panel-title">🚨 신고함</span>
-                <span class="adm-panel-meta" id="reportCount">${DB.get('reports', []).length}건</span>
-            </div>
-            <div class="adm-table-wrap">
-                <table class="adm-table">
-                    <thead>
-                        <tr>
-                            <th>학번</th>
-                            <th>신고대상</th>
-                            <th>신고사유</th>
-                            <th>작성 시각</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reportTbody">${_buildReportRows()}</tbody>
-                </table>
-            </div>
-        </div>
-        ` : ''}
 
         <!-- 비밀번호 조회 -->
         <div class="adm-panel" id="pwViewPanel">
@@ -742,4 +694,92 @@ function updateEmergencyBanner() {
         banner.style.display = 'none';
         document.documentElement.style.setProperty('--emergency-h', '0px');
     }
+}
+
+// =============================================
+// 건의함 모달
+// =============================================
+function showSuggestionsModal() {
+    if (!_canViewSuggestionData()) {
+        showToast('조회 권한이 없습니다.', 'error');
+        return;
+    }
+
+    const suggestions = DB.get('suggestions', []);
+    let tableHtml = '';
+
+    if (suggestions.length === 0) {
+        tableHtml = `<div style="padding:40px;text-align:center;color:var(--text-muted)">건의함이 비어있습니다</div>`;
+    } else {
+        const rows = suggestions.map((item, idx) => {
+            const date = new Date(item.createdAt);
+            const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+            const publicLabel = item.namePublic ? '공개' : '비공개';
+
+            return `
+            <div style="border-bottom:1px solid var(--border);padding:16px 0">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-weight:600">${escapeHtml(item.studentId)} - ${escapeHtml(item.name)}</span>
+                    <span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span>
+                </div>
+                <div style="background:var(--bg-subtle);padding:12px;border-radius:var(--radius-xs);margin-bottom:8px">
+                    <p style="margin:0;white-space:pre-wrap;word-break:break-word;font-size:0.9rem">${escapeHtml(item.content)}</p>
+                </div>
+                <div style="font-size:0.85rem;color:var(--text-muted)">이름 공개 여부: <strong>${publicLabel}</strong></div>
+            </div>`;
+        }).join('');
+
+        tableHtml = `<div style="padding:20px 0">${rows}</div>`;
+    }
+
+    const bodyHtml = `
+    <div style="max-height:600px;overflow-y:auto">
+        ${tableHtml}
+    </div>`;
+
+    openModal(`💬 건의함 (총 ${suggestions.length}건)`, bodyHtml);
+}
+
+// =============================================
+// 신고함 모달
+// =============================================
+function showReportsModal() {
+    if (!_canViewSuggestionData()) {
+        showToast('조회 권한이 없습니다.', 'error');
+        return;
+    }
+
+    const reports = DB.get('reports', []);
+    let tableHtml = '';
+
+    if (reports.length === 0) {
+        tableHtml = `<div style="padding:40px;text-align:center;color:var(--text-muted)">신고함이 비어있습니다</div>`;
+    } else {
+        const rows = reports.map((item, idx) => {
+            const date = new Date(item.createdAt);
+            const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+
+            return `
+            <div style="border-bottom:1px solid var(--border);padding:16px 0">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-weight:600">신고자: ${escapeHtml(item.studentId)}</span>
+                    <span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span>
+                </div>
+                <div style="background:var(--primary-bg);padding:12px;border-radius:var(--radius-xs);margin-bottom:8px;border-left:4px solid var(--primary)">
+                    <div style="font-size:0.9rem;margin-bottom:8px"><strong>신고 대상:</strong> ${escapeHtml(item.targetName)}</div>
+                    <div style="font-size:0.9rem"><strong>신고 사유:</strong></div>
+                    <p style="margin:8px 0 0 0;white-space:pre-wrap;word-break:break-word;font-size:0.85rem">${escapeHtml(item.reason)}</p>
+                </div>
+            </div>`;
+        }).join('');
+
+        tableHtml = `<div style="padding:20px 0">${rows}</div>`;
+    }
+
+    const bodyHtml = `
+    <div style="max-height:600px;overflow-y:auto">
+        ${tableHtml}
+    </div>`;
+
+    openModal(`🚨 신고함 (총 ${reports.length}건)`, bodyHtml);
 }
