@@ -28,7 +28,7 @@ function navigate(page, params = {}) {
 
 const BANNED_RESTRICTED   = ['board','board-detail','board-write','dday','logs','boardlog'];
 const TIMEOUT_RESTRICTED  = ['board','board-detail','board-write','dday','notices','notice-detail','notice-write','votes','vote-detail','vote-create','logs','boardlog'];
-const GUEST_ALLOWED       = ['home','login','timetable','lunch','academic','weather','cleaning','map','board','board-detail','board-write','votes','vote-detail','vote-create','dday','chat','links'];
+const GUEST_ALLOWED       = ['home','login','timetable','lunch','academic','weather','cleaning','map','board','board-detail','board-write','votes','vote-detail','vote-create','dday','chat','links','suggestion'];
 
 function renderLoginRequiredPage() {
     return `
@@ -144,6 +144,7 @@ function render() {
         case 'dday':         app.innerHTML = renderDday();              break;
         case 'chat':         app.innerHTML = renderChat();              break;
         case 'links':        app.innerHTML = renderLinks();             break;
+        case 'suggestion':   app.innerHTML = renderSuggestion();       break;
         // case 'seat-draw':    app.innerHTML = renderSeatDraw();          break;
         case 'change-password': app.innerHTML = renderChangePassword(); break;
         case 'lunch':        app.innerHTML = renderLunch(); setTimeout(() => loadLunchPage(), 0); break;

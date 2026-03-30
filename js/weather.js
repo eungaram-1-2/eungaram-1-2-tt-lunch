@@ -113,46 +113,33 @@ function renderWeather() {
 async function loadWeatherPage() {
     const app = document.getElementById('app');
     try {
-        // 기상청 데이터 가져오기 (프록시 사용)
+        // Open-Meteo API 사용 (안정적인 무료 API)
         const fetchWeatherFromKMA = async (lat, lon) => {
             try {
-                // 기상청 단기예보 API (프록시 사용)
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = 'http://www.weather.go.kr/w/obs-real-time.do?stnId=11113'; // 하남역 기준
-                const url = proxyUrl + encodeURIComponent(targetUrl);
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=time,temperature_2m_max,temperature_2m_min,weather_code&timezone=Asia/Seoul`;
 
                 const response = await fetch(url);
-                const html = await response.text();
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
 
-                console.log('[기상청 데이터 수신]', html.substring(0, 500));
-
-                // HTML에서 온도 데이터 추출
-                const tempMatch = html.match(/현재\s*온도[:\s]*(-?\d+\.?\d*)/i) || html.match(/>(-?\d+)°C</);
-                const humiMatch = html.match(/습도[:\s]*(\d+)/i) || html.match(/습도[^0-9]*(\d+)/);
-                const windMatch = html.match(/풍속[:\s]*(\d+\.?\d*)/i) || html.match(/풍속[^0-9]*(\d+\.?\d*)/);
-
-                const temperature = tempMatch ? Math.round(parseFloat(tempMatch[1])) : 20;
-                const humidity = humiMatch ? parseInt(humiMatch[1]) : 60;
-                const windSpeed = windMatch ? Math.round(parseFloat(windMatch[1])) : 5;
-
-                console.log('[기상청 파싱 결과]', { temperature, humidity, windSpeed });
+                if (!data.current) throw new Error('Current data missing');
 
                 return {
                     current: {
-                        temperature_2m: temperature,
-                        weather_code: 1,
-                        relative_humidity_2m: humidity,
-                        wind_speed_10m: windSpeed
+                        temperature_2m: Math.round(data.current.temperature_2m),
+                        weather_code: data.current.weather_code || 0,
+                        relative_humidity_2m: data.current.relative_humidity_2m || 50,
+                        wind_speed_10m: Math.round(data.current.wind_speed_10m || 0)
                     },
                     daily: {
-                        time: [],
-                        temperature_2m_max: [],
-                        temperature_2m_min: [],
-                        weather_code: []
+                        time: data.daily.time || [],
+                        temperature_2m_max: (data.daily.temperature_2m_max || []).map(t => Math.round(t)),
+                        temperature_2m_min: (data.daily.temperature_2m_min || []).map(t => Math.round(t)),
+                        weather_code: data.daily.weather_code || []
                     }
                 };
             } catch (e) {
-                console.error(`[기상청 데이터] 조회 실패:`, e);
+                console.error(`[날씨 조회 실패]`, e);
                 return null;
             }
         };

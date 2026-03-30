@@ -189,6 +189,61 @@ function _buildAdminMemberRows() {
     }).join('');
 }
 
+function _canViewSuggestionData() {
+    const user = currentUser();
+    if (!user) return false;
+    // 10202번 학생(2번) 또는 담임선생님(teacher) 계정만 건의/신고 조회 가능
+    return user.id === '10202' || user.id === 'teacher';
+}
+
+function _buildSuggestionRows() {
+    if (!_canViewSuggestionData()) {
+        return `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">조회 권한이 없습니다</td></tr>`;
+    }
+
+    const suggestions = DB.get('suggestions', []);
+    if (suggestions.length === 0) {
+        return `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">건의함이 비어있습니다</td></tr>`;
+    }
+    return suggestions.map((item, idx) => {
+        const date = new Date(item.createdAt);
+        const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+        const publicLabel = item.namePublic ? '공개' : '비공개';
+
+        return `
+        <tr class="adm-row">
+            <td><span class="adm-username">${escapeHtml(item.studentId)}</span></td>
+            <td><span style="font-size:0.9rem">${escapeHtml(item.content.substring(0, 50))}${item.content.length > 50 ? '...' : ''}</span></td>
+            <td><span style="font-size:0.85rem">${publicLabel}</span></td>
+            <td><span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span></td>
+        </tr>`;
+    }).join('');
+}
+
+function _buildReportRows() {
+    if (!_canViewSuggestionData()) {
+        return `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">조회 권한이 없습니다</td></tr>`;
+    }
+
+    const reports = DB.get('reports', []);
+    if (reports.length === 0) {
+        return `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted)">신고함이 비어있습니다</td></tr>`;
+    }
+
+    return reports.map((item, idx) => {
+        const date = new Date(item.createdAt);
+        const dateStr = `${date.getFullYear()}.${String(date.getMonth()+1).padStart(2,'0')}.${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+
+        return `
+        <tr class="adm-row">
+            <td><span class="adm-username">${escapeHtml(item.studentId)}</span></td>
+            <td><span style="font-size:0.9rem">${escapeHtml(item.targetName)}</span></td>
+            <td><span style="font-size:0.9rem">${escapeHtml(item.reason.substring(0, 50))}${item.reason.length > 50 ? '...' : ''}</span></td>
+            <td><span style="font-size:0.85rem;color:var(--text-muted)">${dateStr}</span></td>
+        </tr>`;
+    }).join('');
+}
+
 function _updateAdminStats() {
     const bans       = DB.get('bans');
     const users      = ACCOUNTS.filter(a => a.role !== 'admin');
@@ -224,9 +279,13 @@ function renderAdmin() {
         _adminUnlisten = sessionListenAll(() => {
             const tbody = document.getElementById('adminTbody');
             const mtbody = document.getElementById('adminMemberTbody');
-            if (!tbody && !mtbody) { if (_adminUnlisten) { _adminUnlisten(); _adminUnlisten = null; } return; }
+            const stbody = document.getElementById('suggestionTbody');
+            const rtbody = document.getElementById('reportTbody');
+            if (!tbody && !mtbody && !stbody && !rtbody) { if (_adminUnlisten) { _adminUnlisten(); _adminUnlisten = null; } return; }
             if (tbody) tbody.innerHTML = _buildAdminRows();
             if (mtbody) mtbody.innerHTML = _buildAdminMemberRows();
+            if (stbody) stbody.innerHTML = _buildSuggestionRows();
+            if (rtbody) rtbody.innerHTML = _buildReportRows();
             _updateAdminStats();
         });
 
@@ -356,6 +415,52 @@ function renderAdmin() {
                 </table>
             </div>
         </div>
+
+        ${_canViewSuggestionData() ? `
+        <!-- 건의함 -->
+        <div class="adm-panel">
+            <div class="adm-panel-header">
+                <span class="adm-panel-title">💬 건의함</span>
+                <span class="adm-panel-meta" id="suggestionCount">${DB.get('suggestions', []).length}건</span>
+            </div>
+            <div class="adm-table-wrap">
+                <table class="adm-table">
+                    <thead>
+                        <tr>
+                            <th>학번</th>
+                            <th>내용</th>
+                            <th>공개여부</th>
+                            <th>작성 시각</th>
+                        </tr>
+                    </thead>
+                    <tbody id="suggestionTbody">${_buildSuggestionRows()}</tbody>
+                </table>
+            </div>
+        </div>
+        ` : ''}
+
+        ${_canViewSuggestionData() ? `
+        <!-- 신고함 (10202번, 담임선생님만 조회 가능) -->
+        <div class="adm-panel">
+            <div class="adm-panel-header">
+                <span class="adm-panel-title">🚨 신고함</span>
+                <span class="adm-panel-meta" id="reportCount">${DB.get('reports', []).length}건</span>
+            </div>
+            <div class="adm-table-wrap">
+                <table class="adm-table">
+                    <thead>
+                        <tr>
+                            <th>학번</th>
+                            <th>신고대상</th>
+                            <th>신고사유</th>
+                            <th>작성 시각</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportTbody">${_buildReportRows()}</tbody>
+                </table>
+            </div>
+        </div>
+        ` : ''}
 
         <!-- 비밀번호 조회 -->
         <div class="adm-panel" id="pwViewPanel">

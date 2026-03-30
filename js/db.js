@@ -3,7 +3,7 @@
 // =============================================
 
 // Firebase에 동기화할 키 목록
-const _FB_SYNC_KEYS = ['notices', 'board', 'votes', 'ddays', 'bans', 'timeouts', 'admin_logs', 'board_logs', 'chat', 'emergency_notice'];
+const _FB_SYNC_KEYS = ['notices', 'board', 'votes', 'ddays', 'bans', 'timeouts', 'admin_logs', 'board_logs', 'chat', 'emergency_notice', 'suggestions', 'reports'];
 function _shouldSyncToFb(key) {
     return _FB_SYNC_KEYS.includes(key) || key.startsWith('comments_');
 }
