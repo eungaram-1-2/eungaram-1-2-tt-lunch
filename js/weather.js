@@ -1,17 +1,10 @@
 // =============================================
-// 날씨 페이지 — 하남시 (여러 지역)
+// 날씨 페이지 — 하남시
 // =============================================
 
-// 하남시 주요 지역별 좌표
-const HANNAM_LOCATIONS = [
-    { name: '은가람중학교 (선동)', lat: 37.5623, lon: 127.1895, emoji: '🏫' },
-    { name: '미사1동', lat: 37.5650, lon: 127.1950, emoji: '🏘️' },
-    { name: '미사2동', lat: 37.5580, lon: 127.2050, emoji: '🏘️' },
-    { name: '신장동', lat: 37.5450, lon: 127.1750, emoji: '🏢' },
-    { name: '동남동', lat: 37.5350, lon: 127.2150, emoji: '🏘️' },
-    { name: '위례신도시', lat: 37.5300, lon: 127.1650, emoji: '🏗️' }
-];
-
+// 하남시 중심 좌표
+const HANNAM_LAT = 37.5600;
+const HANNAM_LON = 127.1870;
 const WEATHER_CITY = '하남시';
 
 const WMO_DESC = {
@@ -144,31 +137,27 @@ async function loadWeatherPage() {
             }
         };
 
-        // 각 지역 현재 날씨
-        const locationWeathers = await Promise.all(HANNAM_LOCATIONS.map(async loc => {
-            const weather = await fetchWeatherFromKMA(loc.lat, loc.lon);
-            return {
-                ...loc,
-                weather: weather || {
-                    current: {
-                        temperature_2m: 15,
-                        weather_code: 1,
-                        relative_humidity_2m: 60,
-                        wind_speed_10m: 5
-                    },
-                    daily: {
-                        time: [],
-                        temperature_2m_max: [],
-                        temperature_2m_min: [],
-                        weather_code: []
-                    }
+        // 하남시 날씨 조회
+        let mainWeather = await fetchWeatherFromKMA(HANNAM_LAT, HANNAM_LON);
+
+        // API 실패 시 폴백
+        if (!mainWeather) {
+            mainWeather = {
+                current: {
+                    temperature_2m: 15,
+                    weather_code: 1,
+                    relative_humidity_2m: 60,
+                    wind_speed_10m: 5
+                },
+                daily: {
+                    time: [],
+                    temperature_2m_max: [],
+                    temperature_2m_min: [],
+                    weather_code: []
                 }
             };
-        }));
-
-        // 하남시 중심 1개월 예보 (첫번째 위치 사용)
-        let mainWeather = locationWeathers[0].weather;
-        console.log('[날씨] 지역별 데이터:', locationWeathers);
+        }
+        console.log('[날씨] 하남시 데이터:', mainWeather);
 
         // API 실패 시 시뮬레이션 데이터로 폴백
         if (!mainWeather.daily.time || mainWeather.daily.time.length === 0) {
@@ -205,32 +194,6 @@ async function loadWeatherPage() {
             };
         }
 
-        // 지역별 카드 생성
-        const locationCards = locationWeathers.map(loc => {
-            const c = loc.weather.current;
-            const temp = Math.round(c.temperature_2m ?? 0);
-            const wmo = c.weather_code ?? 0;
-            const wmoI = getWmo(wmo);
-            const tempCol = getTempColor(temp);
-            const humid = c.relative_humidity_2m ?? 0;
-            const wind = Math.round(c.wind_speed_10m ?? 0);
-
-            return `
-            <div class="location-card">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                    <span style="font-size:1.8rem">${loc.emoji}</span>
-                    <h3 style="font-size:1rem;font-weight:800;margin:0">${loc.name}</h3>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px">
-                    <div style="font-size:2rem">${wmoI.icon}</div>
-                    <div>
-                        <div style="font-size:1.3rem;font-weight:800;color:${tempCol}">${temp}°C</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted)">${wmoI.label}</div>
-                        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:2px">💧${humid}% 💨${wind}km/h</div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
 
         const c = mainWeather.current;
         const temp = Math.round(c.temperature_2m ?? 0);
@@ -316,13 +279,8 @@ async function loadWeatherPage() {
             </div>
 
             <p style="text-align:center;font-size:0.75rem;color:#f97316;margin-bottom:16px;font-weight:600;padding:8px;background:rgba(249,115,22,0.1);border-radius:8px">
-                ⚠️ 날씨 데이터는 정확하지 않을수도 있습니다. 명심해주세요.
+                ⚠️ 데이터는 Open-Meteo API를 기반으로 합니다.
             </p>
-
-            <!-- 지역별 날씨 카드 -->
-            <div data-weather-locations class="location-cards-grid" style="margin-bottom:24px">
-                ${locationCards}
-            </div>
 
             <div class="weather-current-card" data-weather-current>
                 <div class="wcc-left">
@@ -384,81 +342,46 @@ async function loadWeatherPage() {
     }, 10 * 60 * 1000); // 10분
 }
 
-// 날씨 디스플레이 업데이트 (지역별 + 현재 온도)
+// 날씨 디스플레이 업데이트 (현재 온도)
 async function updateWeatherDisplay() {
     try {
-        const generateWeatherForLocation = (lat, lon) => {
-            const now = new Date();
-            const dates = [];
-            const maxTemps = [];
-            const minTemps = [];
-            const weatherCodes = [];
+        const fetchWeatherFromKMA = async (lat, lon) => {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=Asia/Seoul`;
 
-            const latOffset = (37.5650 - lat) * 100;
-            const baseTemp = 10 + latOffset * 0.8;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const data = await response.json();
 
-            for (let i = 0; i < 1; i++) {
-                const d = new Date(now);
-                d.setDate(d.getDate() + i);
-                const dayHash = (d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate());
-                const variation = (dayHash % 10) - 5;
+                if (!data.current) throw new Error('Current data missing');
 
-                const maxTemp = Math.round(baseTemp + 5 + variation);
-                const minTemp = Math.round(baseTemp - 5 + variation);
-                maxTemps.push(maxTemp);
-                minTemps.push(minTemp);
-                weatherCodes.push(dayHash % 4);
+                return {
+                    current: {
+                        temperature_2m: Math.round(data.current.temperature_2m),
+                        weather_code: data.current.weather_code || 0,
+                        relative_humidity_2m: data.current.relative_humidity_2m || 50,
+                        wind_speed_10m: Math.round(data.current.wind_speed_10m || 0)
+                    }
+                };
+            } catch (e) {
+                console.error(`[날씨 조회 실패]`, e);
+                return null;
             }
-
-            return {
-                current: {
-                    temperature_2m: maxTemps[0],
-                    weather_code: weatherCodes[0],
-                    relative_humidity_2m: 50 + ((Math.floor(lat * 100) + Math.floor(lon * 100)) % 30),
-                    wind_speed_10m: 5 + ((Math.floor(lat * 100) + Math.floor(lon * 100)) % 15)
-                }
-            };
         };
 
-        const locationWeathers = HANNAM_LOCATIONS.map(loc => ({
-            ...loc,
-            weather: generateWeatherForLocation(loc.lat, loc.lon)
-        }));
-
-        // 지역별 카드 업데이트
-        const locationCardsHtml = locationWeathers.map(loc => {
-            const c = loc.weather.current;
-            const temp = Math.round(c.temperature_2m ?? 0);
-            const wmo = c.weather_code ?? 0;
-            const wmoI = getWmo(wmo);
-            const tempCol = getTempColor(temp);
-            const humid = c.relative_humidity_2m ?? 0;
-            const wind = Math.round(c.wind_speed_10m ?? 0);
-
-            return `
-            <div class="location-card">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                    <span style="font-size:1.8rem">${loc.emoji}</span>
-                    <h3 style="font-size:1rem;font-weight:800;margin:0">${loc.name}</h3>
-                </div>
-                <div style="display:flex;align-items:center;gap:12px">
-                    <div style="font-size:2rem">${wmoI.icon}</div>
-                    <div>
-                        <div style="font-size:1.3rem;font-weight:800;color:${tempCol}">${temp}°C</div>
-                        <div style="font-size:0.8rem;color:var(--text-muted)">${wmoI.label}</div>
-                        <div style="font-size:0.75rem;color:var(--text-tertiary);margin-top:2px">💧${humid}% 💨${wind}km/h</div>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-
-        const locationCardsContainer = document.querySelector('[data-weather-locations]');
-        if (locationCardsContainer) {
-            locationCardsContainer.innerHTML = locationCardsHtml;
+        let mainWeather = await fetchWeatherFromKMA(HANNAM_LAT, HANNAM_LON);
+        if (!mainWeather) {
+            mainWeather = {
+                current: {
+                    temperature_2m: 15,
+                    weather_code: 1,
+                    relative_humidity_2m: 60,
+                    wind_speed_10m: 5
+                }
+            };
         }
 
         // 현재 온도 카드 업데이트
-        const mainWeather = locationWeathers[0].weather;
         const c = mainWeather.current;
         const temp = Math.round(c.temperature_2m ?? 0);
         const humid = c.relative_humidity_2m ?? 0;
