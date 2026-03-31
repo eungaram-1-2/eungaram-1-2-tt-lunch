@@ -206,6 +206,10 @@ async function loadWeatherPage() {
                 ℹ️ Open-Meteo API 기반 날씨 정보입니다.
             </p>
 
+            <p style="text-align:center;font-size:0.9rem;color:#b45309;margin-bottom:16px;font-weight:700;padding:14px 12px;background:rgba(217,119,6,0.15);border-radius:8px;border-left:4px solid #d97706;line-height:1.5">
+                ⚠️ <strong>날씨는 부정확할 가능성이 높습니다.</strong><br>특히 비 같은 경우는 꼭 네이버나 구글에 검색해주세요.
+            </p>
+
             <div class="weather-current-card" data-weather-current>
                 <div class="wcc-left">
                     <div class="wcc-icon">${icon}</div>

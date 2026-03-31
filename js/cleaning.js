@@ -115,6 +115,7 @@ function renderCleaning() {
             ${tableHtml}
         </div>
         ${isAdmin ? `<p style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-top:16px">💡 셀을 클릭하여 편집할 수 있습니다.</p>` : ''}
+        ${isAdmin ? `<div style="text-align:center;margin-top:20px"><button class="btn btn-outline btn-sm" onclick="viewCleaningHistory()" style="font-size:0.85rem">📋 변경 이력 확인</button></div>` : ''}
         <p style="text-align:center;font-size:0.78rem;color:var(--text-muted);margin-top:24px">
             구역 변경은 관리자(선생님)만 가능합니다.
         </p>
@@ -138,11 +139,33 @@ function openCleaningEditCell(areaName, day) {
     openModal(`${areaName} 편집`, bodyHtml);
 }
 
+function addCleaningHistory(type, areaName, day, oldValue, newValue) {
+    const history = DB.get('cleaning_history', []);
+    history.push({
+        id: Date.now(),
+        type: type,
+        areaName: areaName,
+        day: day,
+        oldValue: oldValue,
+        newValue: newValue,
+        timestamp: new Date().toISOString(),
+        changedBy: currentUser() ? currentUser().nickname : '알 수 없음'
+    });
+    DB.set('cleaning_history', history);
+    addLog('cleaning_modified', { type, areaName, day, oldValue: oldValue.join(','), newValue: newValue.join(',') });
+}
+
 function saveCleaningCell(areaName, day) {
     const raw = document.getElementById('cell_students').value || '';
     const students = raw.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n) && n > 0);
 
     const data = getCleaningData();
+    const oldValue = [...(data.schedule[areaName][day] || [])];
+
+    // 변경 이력 저장
+    addCleaningHistory('modify', areaName, day, oldValue, students);
+
+    // 현재 데이터 업데이트
     data.schedule[areaName][day] = students;
     DB.set('cleaning_schedule', data);
     closeModal();
@@ -151,8 +174,58 @@ function saveCleaningCell(areaName, day) {
 
 function clearCleaningCell(areaName, day) {
     const data = getCleaningData();
+    const oldValue = [...(data.schedule[areaName][day] || [])];
+
+    // 변경 이력 저장
+    addCleaningHistory('clear', areaName, day, oldValue, []);
+
+    // 현재 데이터 업데이트
     data.schedule[areaName][day] = [];
     DB.set('cleaning_schedule', data);
     closeModal();
     navigate('cleaning');
+}
+
+// 청소표 변경 이력 조회
+function viewCleaningHistory() {
+    const user = currentUser();
+    if (!user || user.role !== 'admin') {
+        showToast('관리자만 접근할 수 있습니다.', 'error');
+        return;
+    }
+
+    const history = DB.get('cleaning_history', []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    if (history.length === 0) {
+        openModal('청소표 변경 이력', '<p style="text-align:center;color:var(--text-muted)">변경 이력이 없습니다.</p>');
+        return;
+    }
+
+    const historyHtml = history.map(h => {
+        const date = new Date(h.timestamp);
+        const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+        const typeLabel = h.type === 'modify' ? '수정' : '삭제';
+        const typeColor = h.type === 'modify' ? '#3b82f6' : '#ef4444';
+
+        return `
+        <div style="padding:12px;border-left:3px solid ${typeColor};background:${typeColor}08;margin-bottom:10px;border-radius:6px;font-size:0.88rem">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <strong style="color:${typeColor}">${typeLabel}</strong>
+                <span style="color:var(--text-muted);font-size:0.8rem">${dateStr}</span>
+            </div>
+            <div style="color:var(--text-muted);margin-bottom:4px">${h.areaName} — ${h.day}요일</div>
+            <div style="margin-top:6px">
+                <div style="font-size:0.8rem;color:var(--text-muted)">이전: <span style="color:var(--text)">${h.oldValue.length > 0 ? h.oldValue.join(', ') : '(비어있음)'}</span></div>
+                <div style="font-size:0.8rem;color:var(--text-muted)">변경: <span style="color:var(--text)">${h.newValue.length > 0 ? h.newValue.join(', ') : '(비어있음)'}</span></div>
+            </div>
+            <div style="margin-top:4px;font-size:0.75rem;color:var(--text-muted)">변경자: ${h.changedBy}</div>
+        </div>`;
+    }).join('');
+
+    const bodyHtml = `
+    <div style="max-height:400px;overflow-y:auto">
+        ${historyHtml}
+    </div>`;
+
+    openModal('청소표 변경 이력', bodyHtml);
 }

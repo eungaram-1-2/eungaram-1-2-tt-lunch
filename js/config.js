@@ -101,7 +101,8 @@ const QUICK_LINKS = [
     // { icon:'🎲', title:'자리 뽑기',             desc:'랜덤 좌석 배정 (관리자)',   page:'seat-draw', color:'#8b5cf6' }
     { icon:'🤖', title:'중학교 AI 선생님',       desc:'어려운 개념도 쉽게 설명해요', url:'https://eungaram-1-2.github.io/eungaram_chat_ai/', color:'#667eea' },
     { icon:'🧹', title:'청소 당번표',             desc:'우리 반 청소 구역 배정표',     page:'cleaning', color:'#10b981' },
-    { icon:'🗺️', title:'지도',                   desc:'장소 검색 · 현재 위치 · 길찾기', page:'map', color:'#0ea5e9' }
+    { icon:'🗺️', title:'지도',                   desc:'장소 검색 · 현재 위치 · 길찾기', page:'map', color:'#0ea5e9' },
+    { icon:'📆', title:'예전 시간표/급식 사이트 바로가기', desc:'이전 버전의 시간표/급식 사이트 접속', url:'https://eungaram-1-2.github.io/eungaram-1-2-tt-lunch', color:'#a78bfa' }
 ];
 
 // =============================================

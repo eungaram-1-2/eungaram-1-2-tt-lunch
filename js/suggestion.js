@@ -1,158 +1,27 @@
 // =============================================
-// 건의함/신고함
+// 건의함/신고함 (Google Forms로 대체됨)
 // =============================================
 let sgSelectedType = null;
 
 // 신고함 1개월 만료 자동 삭제
+/*
 function sgPurgeExpiredReports() {
     const ONE_MONTH = 30 * 24 * 60 * 60 * 1000;
     const reports = DB.get('reports', []);
     const valid = reports.filter(r => (Date.now() - new Date(r.createdAt).getTime()) < ONE_MONTH);
     if (valid.length !== reports.length) DB.set('reports', valid);
 }
+*/
 
 function renderSuggestion() {
-    sgPurgeExpiredReports();
-    sgSelectedType = null;
+    // Google Forms로 리다이렉트
+    const formUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSc1s4oIvfvoT_GbvdFU95ZglDqYvsfngXrwZOaiaeDDC2NsiA/viewform?usp=header';
+    window.location.href = formUrl;
 
-    const user = currentUser();
-    const studentId = user ? user.id : '';
-    const userName  = user ? user.nickname : '';
-
-    return `
-    <div class="page">
-        <div class="sg-form">
-
-            <!-- 헤더 -->
-            <div class="sg-header-card">
-                <div class="sg-header-icon">📮</div>
-                <h2 class="sg-header-title">1-2반 건의함 / 신고함</h2>
-                <div class="sg-header-pills">
-                    <span class="sg-pill sg-pill-blue">💬 건의 → 학급회의 반영</span>
-                    <span class="sg-pill sg-pill-red">🚨 신고 → 담임선생님 전달</span>
-                </div>
-                <p class="sg-header-notice">신고자의 신원은 철저히 보호됩니다.</p>
-            </div>
-
-            <!-- 진행 표시 -->
-            <div class="sg-progress-bar"><div class="sg-progress-fill" id="sgProgress" style="width:0%"></div></div>
-
-            <!-- 카드1: 학번 -->
-            <div class="sg-card sg-card-active">
-                <div class="sg-card-num">01</div>
-                <label class="sg-label">학번 <span class="sg-required">*</span></label>
-                <div class="sg-input-wrap">
-                    <input type="text" id="sg-student-id" class="sg-input" placeholder="예: 10201" value="${studentId}" oninput="sgUpdateProgress()">
-                </div>
-                ${studentId ? `<p class="sg-helper">✓ 로그인된 계정: <strong>${studentId}</strong></p>` : `<p class="sg-helper" style="color:var(--danger)">미로그인 상태입니다</p>`}
-            </div>
-
-            <!-- 카드2: 이름 -->
-            <div class="sg-card">
-                <div class="sg-card-num">02</div>
-                <label class="sg-label">귀하의 이름 <span class="sg-required">*</span></label>
-                <div class="sg-input-wrap">
-                    <input type="text" id="sg-name" class="sg-input" placeholder="예: 홍길동" value="${userName}" oninput="sgUpdateProgress()">
-                </div>
-            </div>
-
-            <!-- 카드3: 건의/신고 선택 -->
-            <div class="sg-card">
-                <div class="sg-card-num">03</div>
-                <label class="sg-label">건의인가요, 신고인가요? <span class="sg-required">*</span></label>
-                <div class="sg-type-selector">
-                    <label class="sg-type-btn" id="sg-type-btn-건의" onclick="sgToggleType('건의')">
-                        <input type="radio" name="sg-type" value="건의" style="display:none">
-                        <span class="sg-type-icon">💬</span>
-                        <span class="sg-type-name">건의</span>
-                        <span class="sg-type-desc">학급회의에서 검토해요</span>
-                    </label>
-                    <label class="sg-type-btn" id="sg-type-btn-신고" onclick="sgToggleType('신고')">
-                        <input type="radio" name="sg-type" value="신고" style="display:none">
-                        <span class="sg-type-icon">🚨</span>
-                        <span class="sg-type-name">신고</span>
-                        <span class="sg-type-desc">담임선생님께 전달돼요</span>
-                    </label>
-                </div>
-            </div>
-
-            <!-- 건의 섹션 -->
-            <div id="sg-section-suggestion" class="sg-section-hidden">
-                <div class="sg-card">
-                    <div class="sg-card-num">04</div>
-                    <label class="sg-label">건의할 내용 <span class="sg-required">*</span></label>
-                    <div class="sg-textarea-wrap">
-                        <textarea id="sg-suggestion-content" class="sg-textarea"
-                            placeholder="어떤 점을 건의하고 싶으신가요? 구체적으로 적어주실수록 좋아요."
-                            rows="5" maxlength="1000" oninput="sgCountChars('sg-suggestion-content','sg-suggestion-count',1000);sgUpdateProgress()"></textarea>
-                    </div>
-                    <div class="sg-char-bar">
-                        <span id="sg-suggestion-count" class="sg-char-count">0 / 1000</span>
-                    </div>
-                </div>
-
-                <div class="sg-card">
-                    <div class="sg-card-num">05</div>
-                    <label class="sg-label">학급회의 등에서 이름을 공개할까요? <span class="sg-required">*</span></label>
-                    <div class="sg-radio-group">
-                        <label class="sg-radio-option">
-                            <input type="radio" name="sg-name-public" value="yes" checked>
-                            <span class="sg-radio-box"></span>
-                            <div class="sg-radio-text">
-                                <span class="sg-radio-main">이름 공개 허용합니다</span>
-                                <span class="sg-radio-sub">학급회의에서 발의자로 소개될 수 있어요</span>
-                            </div>
-                        </label>
-                        <label class="sg-radio-option">
-                            <input type="radio" name="sg-name-public" value="no">
-                            <span class="sg-radio-box"></span>
-                            <div class="sg-radio-text">
-                                <span class="sg-radio-main">이름 공개 허용하지 않습니다</span>
-                                <span class="sg-radio-sub">익명으로 처리됩니다</span>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 신고 섹션 -->
-            <div id="sg-section-report" class="sg-section-hidden">
-                <div class="sg-info-banner">
-                    🔒 신고자 정보는 담임선생님 외에 누구에게도 공개되지 않습니다.
-                </div>
-
-                <div class="sg-card">
-                    <div class="sg-card-num">04</div>
-                    <label class="sg-label">신고할 사람의 이름 <span class="sg-required">*</span></label>
-                    <div class="sg-input-wrap">
-                        <input type="text" id="sg-report-target" class="sg-input" placeholder="예: 홍길동" oninput="sgUpdateProgress()">
-                    </div>
-                </div>
-
-                <div class="sg-card">
-                    <div class="sg-card-num">05</div>
-                    <label class="sg-label">신고 사유 <span class="sg-required">*</span></label>
-                    <div class="sg-textarea-wrap">
-                        <textarea id="sg-report-reason" class="sg-textarea"
-                            placeholder="어떤 일이 있었는지 구체적으로 적어주세요. 날짜, 장소, 상황을 포함하면 도움이 됩니다."
-                            rows="5" maxlength="1000" oninput="sgCountChars('sg-report-reason','sg-report-count',1000);sgUpdateProgress()"></textarea>
-                    </div>
-                    <div class="sg-char-bar">
-                        <span id="sg-report-count" class="sg-char-count">0 / 1000</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 제출 버튼 -->
-            <button class="sg-submit-btn" onclick="sgSubmit()" id="sgSubmitBtn">
-                <span>제출하기</span>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </button>
-
-        </div>
-    </div>`;
+    return `<div class="page"><p>Google Forms로 이동 중입니다...</p></div>`;
 }
 
+/*
 function sgToggleType(type) {
     sgSelectedType = type;
 
@@ -259,3 +128,4 @@ function sgSubmit() {
     showToast(type === '건의' ? '건의사항이 접수되었습니다. 감사합니다!' : '신고가 접수되었습니다. 신원은 철저히 보호됩니다.', 'success');
     setTimeout(() => navigate('links'), 1500);
 }
+*/
