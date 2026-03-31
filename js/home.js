@@ -124,6 +124,9 @@ function renderHome() {
         <div class="quick-pill" onclick="navigate('lunch')">
             <span class="quick-pill-icon">🍱</span><span>급식</span>
         </div>
+        <div class="quick-pill" onclick="navigate('suggestion')">
+            <span class="quick-pill-icon">📮</span><span>건의함/신고함</span>
+        </div>
         <!-- <div class="quick-pill" onclick="navigate('board')">
             <span class="quick-pill-icon">💬</span><span>게시판</span>
         </div>
