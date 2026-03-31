@@ -631,9 +631,7 @@
 </div>
 
 <script>
-// ⚠️ API_KEY를 환경 변수나 별도 설정 파일에서 로드해야 합니다
-// 보안: API 키를 하드코딩하지 마세요
-const API_KEY = "YOUR_GROQ_API_KEY_HERE";
+const API_KEY = "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";
 const API_URL = "https://api.groq.com/openai/v1/chat/completions";
 
 /* ── 시스템 프롬프트 ── */
@@ -1003,7 +1001,7 @@ async function sendMessage() {
         "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model:       hasImage ? "meta-llama/llama-4-scout-17b-16e-instruct" : "llama-3.3-70b-versatile",
+        model:       "llama-3.1-8b-instant",
         messages:    [{ role: "system", content: SYSTEM_PROMPT }, ...history],
         temperature: 0.25,
         max_tokens:  1600,
