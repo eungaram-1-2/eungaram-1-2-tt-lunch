@@ -3,316 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>제 1학년 2반 프리미엄 시간표</title>
-    <style>
-        /* 기본 배경 및 부드러운 폰트 렌더링 */
-        body {
-            background: linear-gradient(135deg, #f0f4fd 0%, #f6f8fc 100%);
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 50px 20px;
-            margin: 0;
-            min-height: 100vh;
-        }
-
-        /* 상단 타이틀 영역 */
-        .header-title {
-            width: 100%;
-            max-width: 1050px;
-            display: flex;
-            align-items: center;
-            margin-bottom: 25px;
-            color: #1e293b;
-        }
-        .header-title span {
-            font-size: 28px;
-            margin-right: 12px;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-        }
-        .header-title h1 {
-            font-size: 26px;
-            font-weight: 800;
-            margin: 0;
-            letter-spacing: -0.8px;
-        }
-
-        /* 입체감 있는 흰색 컨테이너 박스 */
-        .timetable-wrapper {
-            background-color: #ffffff;
-            border-radius: 24px;
-            padding: 30px;
-            width: 100%;
-            max-width: 1050px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0,0,0,0.02);
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 14px;
-            min-width: 850px;
-        }
-
-        th {
-            background-color: #6c3ce9;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 700;
-            height: 54px;
-            border-radius: 12px;
-            vertical-align: middle;
-            width: 16%;
-            box-shadow: 0 4px 10px rgba(108, 60, 233, 0.2);
-        }
-
-        /* --- [수정] 교시 및 시간 정보 강조 --- */
-        td.period {
-            color: #4c1d95; /* 더 진한 보라색 */
-            font-weight: 900; /* 가장 두꺼운 폰트 */
-            font-size: 17px; /* 교시 크기 확대 */
-            text-align: center;
-            vertical-align: middle;
-            background-color: #f8fafc; /* 영역 구분을 위한 아주 연한 배경색 */
-            border-radius: 12px;
-            width: 100px;
-        }
-        td.period span {
-            display: block;
-            color: #1e293b; /* 연한 회색에서 진한 남색으로 변경 */
-            font-size: 13px; /* 시간 크기 확대 */
-            font-weight: 700; /* 시간 두께 강화 */
-            margin-top: 6px;
-            background: #e2e8f0; /* 시간 뒤에 옅은 강조 배지 */
-            padding: 2px 0;
-            border-radius: 6px;
-            margin-left: 10px;
-            margin-right: 10px;
-        }
-
-        td.subject {
-            background-color: #ffffff;
-            border: 1px solid #f1f5f9;
-            border-radius: 16px;
-            text-align: center;
-            vertical-align: middle;
-            height: 96px;
-            padding: 12px;
-            box-sizing: border-box;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
-            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-        }
-        td.subject:not(.empty):hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.06);
-            border-color: #e2e8f0;
-            z-index: 10;
-        }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 30px;
-            padding: 0 16px;
-            border-radius: 15px;
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            letter-spacing: -0.5px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-        }
-
-        .teacher {
-            display: block;
-            color: #64748b;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .empty {
-            color: #cbd5e0;
-            background-color: #f8fafc;
-            border-style: dashed;
-        }
-
-        /* 과목 색상 */
-        .bg-red { background-color: #ef4444; } 
-        .bg-cyan { background-color: #06b6d4; }
-        .bg-purple { background-color: #a855f7; }
-        .bg-indigo { background-color: #6366f1; }
-        .bg-yellow { background-color: #eab308; }
-        .bg-orange { background-color: #f97316; }
-        .bg-green { background-color: #84cc16; }
-        .bg-blue { background-color: #3b82f6; }
-        .bg-teal { background-color: #14b8a6; }
-        .bg-pink { background-color: #ec4899; }
-        .bg-emerald { background-color: #10b981; }
-        .bg-gray { background-color: #64748b; }
-
-        /* 당일 강조 */
-        th.today-header { background-color: #de3163 !important; box-shadow: 0 6px 15px rgba(222, 49, 99, 0.3); }
-        td.today-cell { border: 2px solid #de3163 !important; background-color: #fff5f7 !important; animation: pulse-border 2.5s infinite; }
-
-        @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 0 rgba(222, 49, 99, 0.4); }
-            70% { box-shadow: 0 0 0 8px rgba(222, 49, 99, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(222, 49, 99, 0); }
-        }
-
-        /* 하단 이동 장소 안내 영역 */
-        .info-container {
-            width: 100%;
-            max-width: 1050px;
-            margin-top: 30px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-        }
-        .info-card {
-            background: #ffffff;
-            border-radius: 12px;
-            padding: 15px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
-            border: 1px solid #f1f5f9;
-        }
-        .info-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 12px; }
-        .info-text { font-size: 14px; color: #475569; font-weight: 500; }
-        .info-text strong { color: #1e293b; margin-right: 5px; }
-
-        /* 과목별 포인트 색상 */
-        .dot-korean { background-color: #ef4444; }
-        .dot-english { background-color: #10b981; }
-        .dot-math { background-color: #3b82f6; }
-        .dot-society { background-color: #a855f7; }
-        .dot-science { background-color: #eab308; }
-        .dot-art { background-color: #f97316; }
-        .dot-music { background-color: #ec4899; }
-        .dot-career { background-color: #84cc16; }
-        .dot-tech { background-color: #6366f1; }
-        .dot-topic { background-color: #64748b; }
-    </style>
+    <title>은가람 중학교 1학년 2반 | 함께 배우고 성장하는 우리 반</title>
+    <meta name="description" content="우리 반의 모든 것이 한 곳에. 공지사항, 시간표, 급식, 학사일정, 커뮤니티까지 한눈에 보고 함께 배우고 성장하는 공동체입니다.">
+    <!-- 보안: CSP -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; font-src 'self' https://fonts.gstatic.com https://cdn.jsdelivr.net; img-src 'self' data: https://*.tile.openstreetmap.org; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdn.jsdelivr.net https://*.firebasedatabase.app; connect-src 'self' https://www.gstatic.com https://api.allorigins.win https://cors-anywhere.herokuapp.com https://api.ipify.org https://*.firebaseio.com wss://*.firebaseio.com https://*.googleapis.com https://firebasestorage.googleapis.com https://*.firebasedatabase.app wss://*.firebasedatabase.app https://cdn.jsdelivr.net https://api.open-meteo.com https://nominatim.openstreetmap.org https://router.project-osrm.org https://api.weather.go.kr; media-src 'self'; form-action 'self' https://docs.google.com;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta name="referrer" content="no-referrer">
+    <!-- 폰트 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
+    <link rel="stylesheet" href="style.min.css?v=2">
+    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+    <link rel="prefetch" href="data/lunch.json" as="fetch" crossorigin="anonymous">
+    <!-- 다크모드 깜빡임 방지 -->
+    <script>
+        (function(){
+            var t = localStorage.getItem('theme');
+            if (t === 'dark' || (!t && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme','dark');
+            }
+        })();
+    </script>
 </head>
 <body>
+    <!-- 네비게이션 -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="nav-logo" onclick="navigate('home')">
+                <img src="assets/logo.svg" alt="은가람 중학교 로고" class="logo-img">
+                <div class="logo-text">
+                    <span class="logo-title">은가람 중학교</span>
+                    <span class="logo-subtitle">1학년 2반 | 함께 성장하는 공동체</span>
+                    <span class="logo-clock" id="navClock"></span>
+                </div>
+            </a>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="#" onclick="navigate('notices')">📢 공지사항</a></li>
+                <li><a href="#" onclick="navigate('timetable')">📅 시간표</a></li>
+                <li><a href="#" onclick="navigate('lunch')">🍱 급식</a></li>
+                <li><a href="#" onclick="navigate('academic')">🗓️ 학사일정</a></li>
+                <!-- <li><a href="#" onclick="navigate('board')">💬 자유게시판</a></li>
+                <li><a href="#" onclick="navigate('votes')">🗳️ 투표</a></li> -->
+                <li><a href="#" onclick="navigate('weather')">🌤️ 날씨</a></li>
+                <li><a href="#" onclick="navigate('links')">🔗 바로가기</a></li>
+                <!-- 모바일 전용: 로그인 상태 메뉴 -->
+                <li class="nav-menu-user-section" id="navMenuUserSection" style="display:none"></li>
+            </ul>
+            <div class="nav-right">
+                <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="다크/라이트 모드 전환" aria-label="테마 전환">
+                    <span class="theme-icon" id="themeIcon">🌙</span>
+                </button>
+                <div class="nav-auth" id="navAuth">
+                    <button class="btn btn-primary btn-sm" onclick="navigate('login')">로그인</button>
+                </div>
+                <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="메뉴 열기">
+                    <span></span><span></span><span></span>
+                </button>
+            </div>
+        </div>
+    </nav>
 
-    <div class="header-title">
-        <span>🗓️</span>
-        <h1>제 1학년 2반 시간표</h1>
+    <!-- 긴급 공지 배너 -->
+    <div id="emergencyBanner" class="emergency-banner" style="display:none" role="alert" aria-live="assertive">
+        <div class="emergency-banner-inner">
+            <span class="emergency-banner-label">🚨 긴급 공지</span>
+            <span class="emergency-banner-text" id="emergencyBannerText"></span>
+        </div>
     </div>
 
-    <div class="timetable-wrapper">
-        <table id="timetable">
-            <thead>
-                <tr>
-                    <th style="background-color: transparent; border: none; box-shadow: none; width: 10%;"></th>
-                    <th>월요일</th>
-                    <th>화요일</th>
-                    <th>수요일</th>
-                    <th>목요일</th>
-                    <th>금요일</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td class="period">1교시<span>09:10</span></td>
-                    <td class="subject"><span class="badge bg-red">국어</span><span class="teacher">전태</span></td>
-                    <td class="subject"><span class="badge bg-cyan">체육</span><span class="teacher">박준</span></td>
-                    <td class="subject"><span class="badge bg-purple">학스</span><span class="teacher">전태</span></td>
-                    <td class="subject"><span class="badge bg-indigo">기가</span><span class="teacher">안치</span></td>
-                    <td class="subject"><span class="badge bg-purple">사회</span><span class="teacher">이혜</span></td>
-                </tr>
-                <tr>
-                    <td class="period">2교시<span>10:05</span></td>
-                    <td class="subject"><span class="badge bg-yellow">과학</span><span class="teacher">박정</span></td>
-                    <td class="subject"><span class="badge bg-orange">미술</span><span class="teacher">이경</span></td>
-                    <td class="subject"><span class="badge bg-purple">사회</span><span class="teacher">변혜</span></td>
-                    <td class="subject"><span class="badge bg-cyan">체육</span><span class="teacher">박준</span></td>
-                    <td class="subject"><span class="badge bg-green">진로</span><span class="teacher">순미</span></td>
-                </tr>
-                <tr>
-                    <td class="period">3교시<span>11:00</span></td>
-                    <td class="subject"><span class="badge bg-cyan">체육</span><span class="teacher">박준</span></td>
-                    <td class="subject"><span class="badge bg-blue">수학</span><span class="teacher">김정</span></td>
-                    <td class="subject"><span class="badge bg-teal">도덕</span><span class="teacher">김현</span></td>
-                    <td class="subject"><span class="badge bg-blue">수학</span><span class="teacher">김정</span></td>
-                    <td class="subject"><span class="badge bg-blue">수학</span><span class="teacher">김정</span></td>
-                </tr>
-                <tr>
-                    <td class="period">4교시<span>11:55</span></td>
-                    <td class="subject"><span class="badge bg-orange">미술</span><span class="teacher">이경</span></td>
-                    <td class="subject"><span class="badge bg-pink">음악</span><span class="teacher">정향</span></td>
-                    <td class="subject"><span class="badge bg-yellow">과학</span><span class="teacher">박정</span></td>
-                    <td class="subject"><span class="badge bg-purple">사회</span><span class="teacher">이혜</span></td>
-                    <td class="subject"><span class="badge bg-teal">도덕</span><span class="teacher">김현</span></td>
-                </tr>
-                <tr>
-                    <td class="period">5교시<span>13:40</span></td>
-                    <td class="subject"><span class="badge bg-gray">주제1</span><span class="teacher">김인</span></td>
-                    <td class="subject"><span class="badge bg-red">국어</span><span class="teacher">전태</span></td>
-                    <td class="subject"><span class="badge bg-pink">음악</span><span class="teacher">정향</span></td>
-                    <td class="subject"><span class="badge bg-emerald">영어</span><span class="teacher">이하</span></td>
-                    <td class="subject"><span class="badge bg-emerald">영어</span><span class="teacher">윤정</span></td>
-                </tr>
-                <tr>
-                    <td class="period">6교시<span>14:35</span></td>
-                    <td class="subject"><span class="badge bg-gray">주제1</span><span class="teacher">김인</span></td>
-                    <td class="subject"><span class="badge bg-gray">주제2</span><span class="teacher">김인</span></td>
-                    <td class="subject"><span class="badge bg-emerald">영어</span><span class="teacher">이하</span></td>
-                    <td class="subject"><span class="badge bg-red">국어</span><span class="teacher">윤현</span></td>
-                    <td class="subject"><span class="badge bg-indigo">기가</span><span class="teacher">안치</span></td>
-                </tr>
-                <tr>
-                    <td class="period">7교시<span>15:30</span></td>
-                    <td class="subject empty">―</td>
-                    <td class="subject"><span class="badge bg-gray">주제2</span><span class="teacher">김인</span></td>
-                    <td class="subject empty">―</td>
-                    <td class="subject empty">―</td>
-                    <td class="subject empty">―</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- 메인 컨텐츠 -->
+    <main id="app"></main>
+
+    <!-- 푸터 -->
+    <footer class="footer">
+        <div class="container">
+            <div id="visitorStats"></div>
+            <p style="margin-top:12px">&copy; 2026 Eungaram Middle School 1st Grade Class 2. ALL RIGHTS RESERVED.</p>
+        </div>
+    </footer>
+
+    <!-- 모달 -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
     </div>
 
-    <div class="header-title" style="margin-top: 40px;">
-        <span>📍</span>
-        <h1>과목별 이동 장소 안내</h1>
-    </div>
+    <!-- Firebase SDK (비동기 로드) -->
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
-    <div class="info-container">
-        <div class="info-card"><div class="info-dot dot-korean"></div><div class="info-text"><strong>국어</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-english"></div><div class="info-text"><strong>영어</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-math"></div><div class="info-text"><strong>수학</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-society"></div><div class="info-text"><strong>사회</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-science"></div><div class="info-text"><strong>과학</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-art"></div><div class="info-text"><strong>미술</strong> 미술실/교실</div></div>
-        <div class="info-card"><div class="info-dot dot-music"></div><div class="info-text"><strong>음악</strong> 음악실</div></div>
-        <div class="info-card"><div class="info-dot dot-career"></div><div class="info-text"><strong>진로</strong> 진로실</div></div>
-        <div class="info-card"><div class="info-dot dot-tech"></div><div class="info-text"><strong>기가</strong> 교실</div></div>
-        <div class="info-card"><div class="info-dot dot-topic"></div><div class="info-text"><strong>주제 1/2</strong> 특별실(각반 교실)</div></div>
-    </div>
+    <!-- 기반 스크립트 -->
+    <script defer src="js/firebase-config.js"></script>
+    <script defer src="js/config.js"></script>
+    <script defer src="js/security.js"></script>
+    <script defer src="js/db.js"></script>
+    <script defer src="js/utils.js"></script>
+    <script defer src="js/theme.js"></script>
+    <script defer src="js/modal.js"></script>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const currentDay = new Date().getDay();
-            if (currentDay >= 1 && currentDay <= 5) {
-                const columnIndex = currentDay + 1;
-                const header = document.querySelector(`th:nth-child(${columnIndex})`);
-                if (header) { header.classList.add('today-header'); }
-                const rows = document.querySelectorAll('tbody tr');
-                rows.forEach(row => {
-                    const cell = row.querySelector(`td:nth-child(${columnIndex})`);
-                    if (cell && !cell.classList.contains('empty')) {
-                        cell.classList.add('today-cell');
-                    }
-                });
-            }
-        });
-    </script>
+    <!-- 페이지 렌더러 -->
+    <script defer src="js/auth.js"></script>
+    <script defer src="js/admin.js"></script>
+    <script defer src="js/home.js"></script>
+    <script defer src="js/notices.js"></script>
+    <script defer src="js/post.js"></script>
+    <script defer src="js/comments.js"></script>
+    <script defer src="js/timetable.js"></script>
+    <script defer src="js/votes.js"></script>
+    <script defer src="js/dday.js"></script>
+    <script defer src="js/links.js"></script>
+    <script defer src="js/suggestion.js"></script>
+    <script defer src="js/lunch.js"></script>
+    <script defer src="js/logs.js"></script>
+    <script defer src="js/boardlog.js"></script>
+    <script defer src="js/notifications.js"></script>
+    <script defer src="js/chat.js"></script>
+    <script defer src="js/reactions.js"></script>
+    <script defer src="js/academic-calendar.js"></script>
+    <script defer src="js/weather.js"></script>
+    <script defer src="js/cleaning.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <script defer src="js/map.js"></script>
+
+    <!-- <script defer src="js/seat-draw.js"></script> -->
+    <script defer src="js/visitors.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <!-- 라우터 & 초기화 (마지막에 로드) -->
+    <script defer src="js/router.js"></script>
+    <script defer src="js/main.js"></script>
 </body>
 </html>

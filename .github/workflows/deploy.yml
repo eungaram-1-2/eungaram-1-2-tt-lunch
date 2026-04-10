@@ -1,0 +1,49 @@
+name: GitHub Pages 배포
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'scripts/**'
+      - 'node_modules/**'
+      - '.gitignore'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: CSS 최소화
+        run: npm run build
+
+      - name: GitHub Pages 설정
+        uses: actions/configure-pages@v4
+
+      - name: 파일 업로드
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: GitHub Pages 배포
+        id: deployment
+        uses: actions/deploy-pages@v4

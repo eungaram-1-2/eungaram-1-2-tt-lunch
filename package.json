@@ -1,0 +1,17 @@
+{
+  "name": "eungaram-1-2",
+  "version": "1.0.0",
+  "description": "은가람 중학교 1-2반 웹사이트",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "scrape:lunch": "node scripts/scrape-lunch.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^23.0.0",
+    "node-fetch": "^2.7.0"
+  }
+}
