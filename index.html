@@ -778,7 +778,7 @@
 
     <div class="lunch-wrapper">
         <div class="lunch-header">
-            <h2>은가람중학교 중식</h2>
+            <h2>은가람중학교 급식</h2>
             <span class="lunch-date" id="lunchDate"></span>
             <span class="lunch-kcal" id="lunchKcal" style="display:none;"></span>
         </div>
@@ -1068,11 +1068,11 @@
                 // tbody에서 "중식" 행 찾기
                 const lunchRow = Array.from(doc.querySelectorAll("tbody tr")).find(tr => {
                     const th = tr.querySelector("th");
-                    return th && th.textContent.trim() === "중식";
+                    return th && th.textContent.trim() === "급식";
                 });
 
                 if (!lunchRow) {
-                    itemsEl.innerHTML = '<span class="lunch-empty">중식 정보를 찾을 수 없습니다.</span>';
+                    itemsEl.innerHTML = '<span class="lunch-empty">급식 정보를 찾을 수 없습니다.</span>';
                     return;
                 }
 
@@ -1211,9 +1211,9 @@
             const headerThs = headerRow.querySelectorAll("th");
             const lunchRow = Array.from(doc.querySelectorAll("tbody tr")).find(tr => {
                 const th = tr.querySelector("th");
-                return th && th.textContent.trim() === "중식";
+                return th && th.textContent.trim() === "급식";
             });
-            if (!lunchRow) { weekEl.innerHTML = '<span class="lunch-empty">중식 정보 없음</span>'; return; }
+            if (!lunchRow) { weekEl.innerHTML = '<span class="lunch-empty">급식 정보 없음</span>'; return; }
 
             const tds = lunchRow.querySelectorAll("td");
 
