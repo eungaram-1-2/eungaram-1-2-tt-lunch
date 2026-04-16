@@ -80,27 +80,6 @@ function renderHome() {
             <div class="hero-orb-visual" aria-hidden="true"></div>
         </div>
 
-        <div class="hero-stats-bar">
-            <div class="hero-stat">
-                <span class="hero-stat-num">1·2</span>
-                <span class="hero-stat-label">학년·반</span>
-            </div>
-            <div class="hero-stat-sep"></div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">7</span>
-                <span class="hero-stat-label">교시 / 일</span>
-            </div>
-            <div class="hero-stat-sep"></div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">5</span>
-                <span class="hero-stat-label">주요 기능</span>
-            </div>
-            <div class="hero-stat-sep"></div>
-            <div class="hero-stat">
-                <span class="hero-stat-num">2026</span>
-                <span class="hero-stat-label">학년도</span>
-            </div>
-        </div>
     </div>
 
     ${ddayStrip}
