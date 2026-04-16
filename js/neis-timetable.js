@@ -15,6 +15,26 @@ const NEIS_CONFIG = {
 const DAY_NAMES = ['월', '화', '수', '목', '금'];
 
 /**
+ * NEIS 과목명을 정규화
+ * @param {string} subject NEIS에서 온 과목명
+ * @returns {string} 정규화된 과목명
+ */
+function normalizeSubjectName(subject) {
+    if (!subject) return subject;
+
+    // (자) 주제선택활동 → 주제
+    if (subject.includes('주제선택활동')) return '주제';
+
+    // (자) 진로 탐색활동 → 진로
+    if (subject.includes('진로') && subject.includes('탐색활동')) return '진로';
+
+    // 기술·가정 → 기가
+    if (subject.includes('기술') && subject.includes('가정')) return '기가';
+
+    return subject;
+}
+
+/**
  * 주간 날짜 범위 구하기 (현재 주의 월~금)
  * @returns {Array<string>} YYYYMMDD 형식의 날짜 배열
  */
@@ -107,7 +127,10 @@ function parseNeisDataToTimetable(neisDataByDate) {
         // 교시별 데이터 정렬
         neisData.forEach(row => {
             const perio = parseInt(row.PERIO);
-            const subject = row.ITRT_CNTNT;
+            let subject = row.ITRT_CNTNT;
+
+            // 과목명 정규화
+            subject = normalizeSubjectName(subject);
 
             if (perio >= 1 && perio <= 7 && subject) {
                 schedule[perio - 1][dayOfWeek] = { s: subject, t: '' };  // 선생님 정보는 비워둠
