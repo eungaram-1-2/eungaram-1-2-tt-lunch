@@ -369,6 +369,7 @@ button { font-family: inherit; }
     background: var(--text-secondary);
     border-radius: 2px;
     transition: var(--transition);
+    pointer-events: none;
 }
 
 .hamburger.active span:nth-child(1) {
