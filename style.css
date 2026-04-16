@@ -3054,6 +3054,20 @@ button { font-family: inherit; }
     line-height: 1;
 }
 
+/* 시간표 버튼 그라데이션 */
+.home-quick-bar .quick-pill:nth-child(1) {
+    background: linear-gradient(90deg, #1d4ed8 0%, #10b981 100%);
+    border: 1.5px solid transparent;
+    color: white;
+    font-weight: 700;
+}
+
+.home-quick-bar .quick-pill:nth-child(1):hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 24px rgba(29, 78, 216, 0.3);
+    color: white;
+}
+
 /* =============================================
    NEW UI — Home Two-Column Layout
    ============================================= */
