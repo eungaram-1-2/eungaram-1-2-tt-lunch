@@ -164,8 +164,11 @@ function updateNav() {
 function toggleMenu() {
     const menu = document.getElementById('navMenu');
     const btn  = document.getElementById('hamburger');
+    console.log('[DEBUG] toggleMenu called. Menu found:', !!menu, 'Button found:', !!btn);
+
     let backdrop = document.getElementById('menuBackdrop');
     if (!backdrop) {
+        console.log('[DEBUG] Creating backdrop');
         backdrop = document.createElement('div');
         backdrop.id = 'menuBackdrop';
         backdrop.className = 'menu-backdrop';
@@ -178,10 +181,12 @@ function toggleMenu() {
         };
         document.body.appendChild(backdrop);
     }
+    console.log('[DEBUG] Before toggle. Menu has "active":', menu && menu.classList.contains('active'));
     menu.classList.toggle('active');
     btn && btn.classList.toggle('active');
     backdrop.classList.toggle('active');
     const isOpen = menu.classList.contains('active');
+    console.log('[DEBUG] After toggle. Menu now has "active":', isOpen);
     btn && btn.setAttribute('aria-expanded', isOpen);
     btn && btn.setAttribute('aria-label', isOpen ? '메뉴 닫기' : '메뉴 열기');
 }
