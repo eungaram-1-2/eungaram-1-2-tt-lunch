@@ -22,7 +22,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (hamburger) {
         hamburger.classList.remove('active');
         hamburger.setAttribute('aria-expanded', 'false');
-        hamburger.addEventListener('click', toggleMenu);
+        // 이벤트 리스너 추가
+        hamburger.removeEventListener('click', toggleMenu);  // 기존 리스너 제거
+        hamburger.addEventListener('click', toggleMenu);    // 새로운 리스너 추가
     }
 
     // 즉시 localStorage 데이터로 렌더 (Firebase를 기다리지 않음)
