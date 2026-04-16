@@ -2,8 +2,7 @@
 // 다크 / 라이트 모드
 // =============================================
 function getTheme() {
-    return localStorage.getItem('theme') ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    return localStorage.getItem('theme') || 'dark';
 }
 
 function applyTheme(theme) {

@@ -47,25 +47,25 @@
 /* ===== Dark Theme ===== */
 [data-theme="dark"] {
     --text: #f1f5f9;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
-    --bg: #080c1a;
-    --bg-page: #060912;
-    --bg-subtle: #0f172a;
-    --bg-card: #111827;
-    --border: #1e2d4a;
-    --border-light: #162038;
-    --primary-bg: rgba(79,70,229,0.12);
-    --primary-bg2: rgba(79,70,229,0.08);
-    --nav-bg: rgba(8,12,26,0.85);
-    --modal-bg: rgba(0,0,0,0.75);
-    --shadow-xs: 0 1px 3px rgba(0,0,0,0.4);
-    --shadow-sm: 0 4px 12px rgba(0,0,0,0.4);
-    --shadow: 0 8px 24px rgba(0,0,0,0.5);
-    --shadow-md: 0 16px 40px rgba(0,0,0,0.55);
-    --shadow-lg: 0 24px 60px rgba(0,0,0,0.6);
-    --glass: rgba(17,24,39,0.7);
-    --glass-border: rgba(255,255,255,0.05);
+    --text-secondary: #c8c8e0;
+    --text-muted: #5a6480;
+    --bg: #05050e;
+    --bg-page: #030309;
+    --bg-subtle: #0a0918;
+    --bg-card: #0d0d1f;
+    --border: #18163a;
+    --border-light: #110f2a;
+    --primary-bg: rgba(99,102,241,0.12);
+    --primary-bg2: rgba(99,102,241,0.07);
+    --nav-bg: rgba(5,5,14,0.88);
+    --modal-bg: rgba(0,0,0,0.85);
+    --shadow-xs: 0 1px 3px rgba(0,0,0,0.6);
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.55);
+    --shadow: 0 8px 24px rgba(0,0,0,0.65);
+    --shadow-md: 0 16px 40px rgba(0,0,0,0.7);
+    --shadow-lg: 0 24px 60px rgba(0,0,0,0.8);
+    --glass: rgba(13,13,31,0.75);
+    --glass-border: rgba(120,100,255,0.1);
 }
 
 
@@ -253,6 +253,63 @@ button { font-family: inherit; }
     border-color: rgba(16,185,129,0.25);
 }
 
+/* ===== Dark Mode — Neon Card & Component Overrides ===== */
+[data-theme="dark"] .card,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .recent-card {
+    background: linear-gradient(135deg, #0d0d1f 0%, #0f0e22 100%);
+    border-color: rgba(90,70,200,0.18);
+}
+
+[data-theme="dark"] .feature-card:hover,
+[data-theme="dark"] .recent-card:hover {
+    border-color: rgba(100,80,255,0.45);
+    box-shadow: 0 0 28px rgba(99,70,255,0.18), 0 16px 40px rgba(0,0,0,0.6);
+}
+
+[data-theme="dark"] .feature-icon {
+    background: linear-gradient(135deg, rgba(99,70,255,0.18) 0%, rgba(50,30,160,0.15) 100%);
+    box-shadow: 0 4px 16px rgba(99,70,255,0.2);
+}
+
+[data-theme="dark"] .feature-card:hover .feature-icon {
+    box-shadow: 0 8px 24px rgba(99,70,255,0.35);
+}
+
+[data-theme="dark"] .lunch-widget,
+[data-theme="dark"] .lunch-page-card {
+    background: linear-gradient(135deg, #0d0d1f 0%, #0f0e22 100%);
+    border-color: rgba(90,70,200,0.18);
+}
+
+[data-theme="dark"] .navbar {
+    border-bottom-color: rgba(90,70,200,0.15);
+    box-shadow: 0 1px 30px rgba(80,50,200,0.12);
+}
+
+[data-theme="dark"] .hero::after {
+    background: var(--bg-page);
+}
+
+[data-theme="dark"] .quick-pill {
+    background: rgba(13,13,31,0.9);
+    border-color: rgba(90,70,200,0.2);
+}
+[data-theme="dark"] .quick-pill:hover {
+    border-color: rgba(100,80,255,0.5);
+    box-shadow: 0 4px 20px rgba(99,70,255,0.2);
+}
+
+[data-theme="dark"] .dday-chip-normal {
+    background: rgba(13,13,31,0.9);
+    border-color: rgba(90,70,200,0.25);
+}
+
+[data-theme="dark"] .footer {
+    background: #030309;
+    border-top: 1px solid rgba(90,70,200,0.12);
+}
+
 /* ===== Theme Toggle ===== */
 .theme-toggle {
     width: 40px; height: 40px;
@@ -410,20 +467,20 @@ button { font-family: inherit; }
 
 /* 다크 모드 */
 [data-theme="dark"] .hero {
-    background: linear-gradient(135deg, #000308 0%, #0d0a1f 30%, #0d1b3f 65%, #054b5c 100%);
+    background: linear-gradient(135deg, #010007 0%, #060015 40%, #0a0525 70%, #030010 100%);
 }
 
 [data-theme="dark"] .hero-blob-1 {
-    background: radial-gradient(circle, rgba(79,70,229,0.65) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(100,60,255,0.75) 0%, transparent 65%);
 }
 [data-theme="dark"] .hero-blob-2 {
-    background: radial-gradient(circle, rgba(6,182,212,0.3) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(0,210,255,0.35) 0%, transparent 65%);
 }
 [data-theme="dark"] .hero-blob-3 {
-    background: radial-gradient(circle, rgba(67,56,202,0.5) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(130,50,220,0.6) 0%, transparent 65%);
 }
 [data-theme="dark"] .hero-blob-4 {
-    background: radial-gradient(circle, rgba(244,63,94,0.25) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(60,0,200,0.45) 0%, transparent 65%);
 }
 
 /* 공통 요소 */
@@ -437,10 +494,10 @@ button { font-family: inherit; }
 }
 
 .hero-blob {
-    display: none;
+    display: block;
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(90px);
     pointer-events: none;
 }
 
@@ -481,17 +538,17 @@ button { font-family: inherit; }
 }
 
 .hero-grid {
-    display: none;
+    display: block;
     position: absolute;
     inset: 0;
     pointer-events: none;
     z-index: 2;
     background-image:
-        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+        linear-gradient(rgba(120,100,255,0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120,100,255,0.07) 1px, transparent 1px);
     background-size: 50px 50px;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+    mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%);
 }
 
 .hero-content { position: relative; z-index: 3; max-width: 680px; margin: 0 auto; }
