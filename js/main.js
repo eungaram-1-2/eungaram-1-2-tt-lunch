@@ -24,14 +24,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         hamburger.setAttribute('aria-expanded', 'false');
     }
 
-    // 이벤트 delegation으로 hamburger 클릭 처리
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('#hamburger');
-        if (btn) {
-            toggleMenu();
-        }
-    });
-
     // 즉시 localStorage 데이터로 렌더 (Firebase를 기다리지 않음)
     render();
 
