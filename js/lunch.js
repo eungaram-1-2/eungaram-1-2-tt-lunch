@@ -64,22 +64,139 @@ async function _fetchLunchDataFromJSON() {
     }
 }
 
+// =============================================
+// 프록시를 통한 학교 홈페이지 직접 스크래핑 (폴백)
+// =============================================
+const _SCRAPE_URL = 'https://eungaram-m.goegh.kr/eungaram-m/ad/fm/foodmenu/selectFoodMenuView.do?mi=8056';
+
+function _cleanScrapedItem(text) {
+    return text.replace(/\([\d.]+\)/g, '').replace(/\([가-힣]+\)/g, '').trim();
+}
+
+async function _fetchWithProxy(targetUrl, cacheKey) {
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) return cached;
+
+    const proxyUrls = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        `https://thingproxy.freeboard.io/fetch/${targetUrl}`,
+    ];
+
+    const tryProxy = async (url) => {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 8000);
+        try {
+            const res = await fetch(url, { signal: controller.signal });
+            clearTimeout(tid);
+            if (!res.ok) throw new Error('not ok');
+            const text = await res.text();
+            if (!text || text.length < 100) throw new Error('empty');
+            return text;
+        } finally {
+            clearTimeout(tid);
+        }
+    };
+
+    const text = await Promise.any(proxyUrls.map(tryProxy));
+    sessionStorage.setItem(cacheKey, text);
+    return text;
+}
+
+function _parseScrapedHtml(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const menus = {};
+
+    const headerRow = doc.querySelector('thead tr');
+    if (!headerRow) return menus;
+    const ths = headerRow.querySelectorAll('th');
+
+    const lunchRow = Array.from(doc.querySelectorAll('tbody tr')).find(tr => {
+        const th = tr.querySelector('th');
+        return th && th.textContent.trim() === '중식';
+    });
+    if (!lunchRow) return menus;
+
+    const tds = lunchRow.querySelectorAll('td');
+
+    for (let i = 1; i < ths.length; i++) {
+        const label = ths[i].textContent.trim();
+        const dateMatch = label.match(/\d{4}-\d{2}-\d{2}/);
+        if (!dateMatch) continue;
+        const dateStr = dateMatch[0];
+
+        const td = tds[i - 1];
+        if (!td) continue;
+
+        const kcalP = td.querySelector('p.fm_tit_p');
+        const kcal = kcalP ? ((kcalP.textContent.match(/([\d.]+)\s*Kcal/i) || [])[1] || null) : null;
+
+        const menuP = td.querySelector('p[class=""]') ||
+            Array.from(td.querySelectorAll('p')).find(p =>
+                !p.classList.contains('fm_tit_p') && !p.classList.contains('btn_style1')
+            );
+
+        const items = menuP
+            ? menuP.innerHTML
+                .split(/<br\s*\/?>/i)
+                .map(s => s.replace(/<[^>]+>/g, '').trim())
+                .filter(s => s.length > 0)
+            : [];
+
+        if (items.length > 0) {
+            menus[dateStr] = { items, kcal };
+        }
+    }
+    return menus;
+}
+
+async function _fetchLunchDataFromScrape() {
+    try {
+        const today = _lunchTodayStr();
+        const cacheKey = `scrape_lunch_${today}`;
+        const html = await _fetchWithProxy(_SCRAPE_URL, cacheKey);
+        const menus = _parseScrapedHtml(html);
+        if (Object.keys(menus).length > 0) {
+            console.info('[Scrape] 학교 홈페이지에서 급식 데이터 로드 성공');
+            return { updated: new Date().toISOString(), menus };
+        }
+        return null;
+    } catch (e) {
+        console.warn('[Scrape] 스크래핑 실패:', e.message);
+        return null;
+    }
+}
+
 async function _fetchLunchData() {
     if (_lunchDataPromise) return _lunchDataPromise;
 
     _lunchDataPromise = (async () => {
-        // Firebase와 JSON을 병렬로 시도
-        const [fbData] = await Promise.all([
-            _fetchLunchDataFromFirebase(),
-            // Firebase가 느리면 JSON에서 가져올 준비
-        ]);
-
-        // Firebase 데이터가 있으면 사용, 없으면 JSON
+        // Firebase 우선
+        const fbData = await _fetchLunchDataFromFirebase();
         if (fbData && Object.keys(fbData.menus).length > 0) {
-            return fbData;
+            // Firebase 데이터에 오늘 데이터가 있는지 확인
+            const today = _lunchTodayStr();
+            if (fbData.menus[today]) return fbData;
         }
 
-        return await _fetchLunchDataFromJSON();
+        // JSON 폴백
+        const jsonData = await _fetchLunchDataFromJSON();
+        const today = _lunchTodayStr();
+        if (jsonData.menus && jsonData.menus[today]) return jsonData;
+
+        // JSON에도 없으면 학교 홈페이지 직접 스크래핑
+        console.info('[Lunch] JSON에 오늘 데이터 없음, 스크래핑 시도');
+        const scrapeData = await _fetchLunchDataFromScrape();
+        if (scrapeData && Object.keys(scrapeData.menus).length > 0) {
+            // JSON 데이터와 병합하여 반환
+            return {
+                updated: scrapeData.updated,
+                menus: { ...(jsonData.menus || {}), ...scrapeData.menus }
+            };
+        }
+
+        return jsonData;
     })();
 
     return _lunchDataPromise;
