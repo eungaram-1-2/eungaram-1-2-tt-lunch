@@ -3224,6 +3224,13 @@ button { font-family: inherit; }
 
 .feature-mosaic .feature-card:first-child {
     grid-column: span 1;
+    background: linear-gradient(90deg, #1d4ed8 0%, #10b981 100%);
+    color: white;
+}
+
+.feature-mosaic .feature-card:first-child h3,
+.feature-mosaic .feature-card:first-child p {
+    color: white;
 }
 
 .feature-card-inner {
