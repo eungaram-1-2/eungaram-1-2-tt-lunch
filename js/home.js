@@ -32,38 +32,6 @@ function renderHome() {
         ? `<div class="dday-strip"><div class="dday-banner">${ddayStripItems}</div></div>`
         : '';
 
-    // ── 공지사항 ──
-    const allNotices = DB.get('notices');
-    const noticesCount = allNotices.length;
-    console.log(`[renderHome] 공지사항 ${noticesCount}개 로드됨`, allNotices);
-    const recentNotices = allNotices.sort((a, b) => b.createdAt - a.createdAt).slice(0, 5);
-
-    let timelineItems = '';
-    if (recentNotices.length > 0) {
-        timelineItems = recentNotices.map(n => {
-            const comments = DB.get('comments_notices_' + n.id);
-            const badgeStyle = n.pinned
-                ? 'background:rgba(245,158,11,0.12);color:#d97706'
-                : 'background:var(--primary-bg);color:var(--primary)';
-            const badgeText = n.pinned ? '📌 고정' : '📢 공지';
-            const commentStr = comments.length > 0 ? ' · 💬 ' + comments.length : '';
-            return `<div class="notice-tl-item" onclick="navigate('notice-detail',{id:'${n.id}'})">
-                <div class="notice-tl-dot" ${n.pinned ? 'style="background:#f59e0b"' : ''}></div>
-                <div class="notice-tl-content">
-                    <div class="notice-tl-title">
-                        <span class="notice-tl-badge" style="${badgeStyle}">${badgeText}</span>${escapeHtml(n.title)}
-                    </div>
-                    <div class="notice-tl-meta">${escapeHtml(n.author)} · ${formatDate(n.createdAt)}${commentStr}</div>
-                </div>
-            </div>`;
-        }).join('');
-    } else {
-        timelineItems = `<div style="padding:32px 0;text-align:center;color:var(--text-muted)">
-            <div style="font-size:2.5rem;margin-bottom:10px">📢</div>
-            <p style="font-weight:500">아직 등록된 공지사항이 없습니다.</p>
-        </div>`;
-    }
-
     // ── 사이드바 D-Day 목록 ──
     let sideDdayItems = '';
     if (upcomingDdays.length > 0) {
@@ -97,14 +65,40 @@ function renderHome() {
         <div class="hero-blob hero-blob-3"></div>
         <div class="hero-blob hero-blob-4"></div>
         <div class="hero-grid"></div>
-        <div class="hero-content">
-            <div class="hero-badge">🏫 은가람 중학교 1학년 2반</div>
-            <h1>서로 배우고<br>함께 성장하는<br>공동체</h1>
-            <p>급식·시간표·학사일정·교가등을 한 곳에서 확인하세요!!</p>
-            <div class="hero-clock" id="heroClock"></div>
-            <div class="hero-btn-row">
-                <button class="hero-btn hero-btn-primary" onclick="navigate('lunch')">🍴 오늘 급식</button>
-                <button class="hero-btn hero-btn-outline" onclick="navigate('timetable')">📅 시간표</button>
+
+        <div class="hero-inner">
+            <div class="hero-content">
+                <div class="hero-badge">🏫 은가람 중학교 1학년 2반</div>
+                <h1>서로 배우고<br><span class="highlight">함께 성장하는</span><br>공동체</h1>
+                <p>급식·시간표·학사일정을 한 곳에서 확인하세요</p>
+                <div class="hero-clock" id="heroClock"></div>
+                <div class="hero-btn-row">
+                    <button class="hero-btn hero-btn-primary" onclick="navigate('lunch')">🍴 오늘 급식</button>
+                    <button class="hero-btn hero-btn-outline" onclick="navigate('timetable')">📅 시간표</button>
+                </div>
+            </div>
+            <div class="hero-orb-visual" aria-hidden="true"></div>
+        </div>
+
+        <div class="hero-stats-bar">
+            <div class="hero-stat">
+                <span class="hero-stat-num">1·2</span>
+                <span class="hero-stat-label">학년·반</span>
+            </div>
+            <div class="hero-stat-sep"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">7</span>
+                <span class="hero-stat-label">교시 / 일</span>
+            </div>
+            <div class="hero-stat-sep"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">5</span>
+                <span class="hero-stat-label">주요 기능</span>
+            </div>
+            <div class="hero-stat-sep"></div>
+            <div class="hero-stat">
+                <span class="hero-stat-num">2026</span>
+                <span class="hero-stat-label">학년도</span>
             </div>
         </div>
     </div>
@@ -112,9 +106,6 @@ function renderHome() {
     ${ddayStrip}
 
     <div class="home-quick-bar">
-        <div class="quick-pill" onclick="navigate('notices')">
-            <span class="quick-pill-icon">📢</span><span>공지사항</span>
-        </div>
         <div class="quick-pill" onclick="navigate('timetable')">
             <span class="quick-pill-icon">📅</span><span>시간표</span>
         </div>
@@ -141,26 +132,8 @@ function renderHome() {
         </div>
     </div>
 
-    <div class="home-two-col">
-        <div class="home-main-col">
-            <div class="card card-body" style="padding:0;overflow:hidden">
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px 0">
-                    <h3 style="font-weight:800;font-size:1rem;color:var(--text)">📢 최근 공지사항</h3>
-                    <button class="btn btn-ghost btn-sm" onclick="navigate('notices')" style="font-size:0.8rem;color:var(--primary)">전체보기 →</button>
-                </div>
-                <div class="notice-timeline" style="padding:0 24px">
-                    ${timelineItems}
-                </div>
-            </div>
-        </div>
-        <div class="home-side-col">
-            ${lunchHtml}
-            <!-- <div class="side-widget">
-                <div class="side-widget-title"><span>⏰</span> 다가오는 일정</div>
-                ${sideDdayItems}
-                <button class="btn btn-ghost btn-sm" onclick="navigate('dday')" style="margin-top:10px;font-size:0.8rem;color:var(--primary);width:100%">전체 일정 보기 →</button>
-            </div> -->
-        </div>
+    <div style="max-width:1160px;margin:0 auto;padding:0 20px">
+        ${lunchHtml}
     </div>
 
     <div class="features" style="padding-top:48px">
@@ -169,13 +142,6 @@ function renderHome() {
             <p>학급 운영에 필요한 모든 기능을 제공합니다</p>
         </div>
         <div class="feature-mosaic" style="max-width:1160px;margin:0 auto;padding:0 20px">
-            <div class="feature-card" onclick="navigate('notices')">
-                <div class="feature-card-inner">
-                    <div class="feature-icon">📢</div>
-                    <h3>실시간 공지사항</h3>
-                    <p>중요 소식과 알림을 즉시 확인하고 댓글로 소통하세요.</p>
-                </div>
-            </div>
             <div class="feature-card" onclick="navigate('timetable')">
                 <div class="feature-card-inner">
                     <div class="feature-icon">📅</div>
