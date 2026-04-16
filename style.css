@@ -2283,6 +2283,13 @@ button { font-family: inherit; }
 
     .nav-menu.active { display: flex; }
 
+    /* guest-mode가 position:absolute를 설정하므로 모바일에서 fixed로 오버라이드 */
+    .nav-menu.guest-mode {
+        position: fixed;
+        left: 0;
+        transform: none;
+    }
+
     .nav-menu li { width: 100%; pointer-events: auto; }
 
     .nav-menu a {
