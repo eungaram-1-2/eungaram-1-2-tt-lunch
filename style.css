@@ -515,7 +515,7 @@ button { font-family: inherit; }
     justify-content: space-between;
     gap: 40px;
     position: relative;
-    z-index: 3;
+    z-index: 5;
 }
 
 /* 오른쪽 시각적 orb (RSNL Creative 스타일) */
