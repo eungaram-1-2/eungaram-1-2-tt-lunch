@@ -18,6 +18,9 @@ Thumbs.db
 
 # Build artifacts (if you add a build process)
 dist/
+
+# Local Desktop folder with API keys
+Desktop/
 build/
 
 # Logs
